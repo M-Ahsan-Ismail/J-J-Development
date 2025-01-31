@@ -1,42 +1,52 @@
-from odoo import fields, models, api, _
-from odoo.exceptions import ValidationError
-from datetime import timedelta
-from odoo.exceptions import UserError
+from odoo import fields, models
 
 
 class PurchaseCustomApprovals(models.Model):
     _inherit = 'purchase.order'
-    _description = 'Custom Approvasls'
+    _description = 'Custom Approvals'
 
     state = fields.Selection([
         ('draft', 'RFQ'),
-        ('manager_approval', 'Manager Approval'),
-        ('ceo_approval', 'CEO Approval'),
         ('sent', 'RFQ Sent'),
         ('to approve', 'To Approve'),
+        ('manager_approval', 'Manager Approval'),
+        ('ceo_approval', 'CEO Approved'),
         ('purchase', 'Purchase Order'),
         ('done', 'Locked'),
-        ('cancel', 'Cancelled')
+        ('cancel', 'Cancelled'),
     ], string='Status', readonly=True, index=True, copy=False, default='draft', tracking=True)
 
-    def action_approval_manager(self):
-        for x in self:
-            x.state = 'manager_approval'
 
-    def action_approval_ceo(self):
-        for x in self:
-            x.state = 'ceo_approval'
+    def button_manager_approval(self):
+        for order in self:
+            order.write({'state': 'manager_approval'})
+            order.message_subscribe([order.partner_id.id])
 
-    def action_rfq_send(self):
-        res = super(PurchaseCustomApprovals,self).action_rfq_send()
-        for x in self:
-            if x.state != 'purchase':
-                x.state = 'sent'
-        return res
+    def button_ceo_approved(self):
+        for order in self:
+            order.write({'state': 'ceo_approval'})
+            order.message_subscribe([order.partner_id.id])
 
     def button_confirm(self):
-        res =  super(PurchaseCustomApprovals,self).button_confirm()
-        for x in self:
-            x.state = 'purchase'
-        return res
+        for order in self:
+            if order.state not in ['draft', 'sent', 'ceo_approval']:
+                continue
+            order.order_line._validate_analytic_distribution()
+            order._add_supplier_to_product()
+            # Deal with double validation process
+            if order._approval_allowed():
+                order.button_approve()
+            else:
+                order.write({'state': 'to approve'})
+            if order.partner_id not in order.message_partner_ids:
+                order.message_subscribe([order.partner_id.id])
+        return True
+
+
+
+
+
+
+
+
 

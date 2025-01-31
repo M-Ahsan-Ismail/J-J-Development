@@ -27,40 +27,16 @@ class PurchaseCustomApprovals(models.Model):
         for x in self:
             x.state = 'ceo_approval'
 
-
-
-    # def button_draft(self):
-    #     res = super(PurchaseCustomApprovals,self).button_draft()
-    #     for x in self:
-    #         x.state = 'draft'
-    #     return res
-
-    # def print_quotation(self):
-    #     res = super(PurchaseCustomApprovals,self).print_quotation()
-    #     for x in self:
-    #         x.state = 'sent'
-    #     return res
-    #
     def action_rfq_send(self):
         res = super(PurchaseCustomApprovals,self).action_rfq_send()
         for x in self:
-            x.state = 'sent'
+            if x.state != 'purchase':
+                x.state = 'sent'
         return res
-    #
-    # def button_confirm(self):
-    #     res = super(PurchaseCustomApprovals, self).button_confirm()
-    #     for order in self:
-    #         order.state = 'purchase'
-    #     return res
-    #
-    # def button_cancel(self):
-    #     res = super(PurchaseCustomApprovals,self).button_cancel()
-    #     for x in self:
-    #         x.state = 'cancel'
-    #     return res
-    #
-    # def button_done(self):
-    #     res = super(PurchaseCustomApprovals,self).button_done()
-    #     for x in self:
-    #         x.state = 'done'
-    #     return res
+
+    def button_confirm(self):
+        res =  super(PurchaseCustomApprovals,self).button_confirm()
+        for x in self:
+            x.state = 'purchase'
+        return res
+

@@ -6,42 +6,9 @@
             <field name="inherit_id" ref="purchase.purchase_order_form"/>
             <field name="priority" eval="8"/>
             <field name="arch" type="xml">
-                <!--                <xpath expr="//header/field[@name='state']" position="attributes">-->
-                <!--                    <attribute name="statusbar_visible">draft,done,cancel</attribute>-->
-                <!--                </xpath>-->
-
-                <!--                                <xpath expr="//button[@name='button_confirm']" position="before">-->
-                <!--                                    <button name="action_approval_manager" type="object" string="Approval One"-->
-                <!--                                            class="oe_highlight"-->
-                <!--                                            groups="bss_purchase_approvals18.purchase_manager_approval"-->
-                <!--                                            invisible="state not in 'draft'"/>-->
-                <!--                                    <button name="action_approval_ceo" type="object" string="Approval Two" class="oe_highlight"-->
-                <!--                                            groups="bss_purchase_approvals18.purchase_ceo_approval"-->
-                <!--                                            invisible="state not in 'manager_approval'"/>-->
-                <!--                                </xpath>-->
-
-                <!--                <xpath expr="//button[@name='action_rfq_send']" position="attributes">-->
-                <!--                    <attribute name="invisible">state not in 'ceo_approval'</attribute>-->
-                <!--                </xpath>-->
-
-                <!--                <xpath expr="//button[@name='print_quotation']" position="attributes">-->
-                <!--                    <attribute name="invisible">state not in 'ceo_approval'</attribute>-->
-                <!--                </xpath>-->
-
-                <!--                <xpath expr="//button[@name='button_confirm']" position="attributes">-->
-                <!--                    <attribute name="invisible">state not in 'ceo_approval'</attribute>-->
-                <!--                </xpath>-->
-
-                <!--                <xpath expr="//button[@name='button_cancel']" position="attributes">-->
-                <!--                    <attribute name="invisible">state not in ['ceo_approval', 'purchase']</attribute>-->
-                <!--                </xpath>-->
-
-                <!--                <xpath expr="//button[@name='button_done']" position="attributes">-->
-                <!--                    <attribute name="invisible">state not in 'purchase'</attribute>-->
-                <!--                </xpath>-->
 
                 <xpath expr="//field[@name='partner_id']" position="after">
-                    <field name="state" readonly="0"/>
+                    <field name="state" readonly="0" invisible="0"/>
                 </xpath>
 
 

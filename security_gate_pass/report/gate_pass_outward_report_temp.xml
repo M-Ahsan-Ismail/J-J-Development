@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_gate_pass_outward_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <br/><br/>
+                        <div class="col-12" style="text-align: center;">
+                            <h2>Outward Gatepass</h2>
+                        </div>
+                        <br/>
+                        <div class="col-12">
+                            <table class="table table-sm table-bordered" width="100%"
+                                   style="line-height:1;">
+                                <tr>
+                                    <th style="text-align: left;">
+                                        <b>Driver Name</b>
+                                    </th>
+                                    <th style="text-align: left;">
+                                        <span t-esc="o.driver_name"/>
+                                    </th>
+
+                                    <th style="text-align: left;">
+                                        <b>Vehicle No</b>
+                                    </th>
+                                    <th style="text-align: left;">
+                                        <span t-esc="o.vehicle_number"/>
+                                    </th>
+                                </tr>
+                                <tr>
+                                    <th style="text-align: left;">
+                                        <b>Gate Pass Sr No</b>
+                                    </th>
+                                    <th style="text-align: left;">
+                                        <span t-esc="o.label_type"/>
+                                    </th>
+
+                                    <th style="text-align: left;">
+                                        <b>Date</b>
+                                    </th>
+                                    <th style="text-align: left;">
+                                        <span t-esc="o.visit_date"/>
+                                    </th>
+                                </tr>
+
+                            </table>
+                        </div>
+                        <br/>
+                        <table class="table table-sm table-bordered" width="100%" style="line-height:1;">
+                            <thead>
+                                <tr style="border-bottom:1px solid black;">
+                                    <th style="text-align: left;"><b>Sr No</b></th>
+                                    <th style="text-align: left;"><b>Description</b></th>
+                                    <th style="text-align: left;"><b>Unit</b></th>
+                                    <th style="text-align: left;"><b>Qty</b></th>
+                                    <th style="text-align: left;"><b>Bags</b></th>
+                                    <th style="text-align: left;"><b>Remarks</b></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="counter" t-value="1"/>
+                                <t t-foreach="o.line_ids" t-as="line">
+                                    <tr>
+                                        <td>Counter</td>
+                                        <td><t t-esc="line.products"/></td>
+                                        <td></td>
+                                        <td><t t-esc="line.qty"/></td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                    <t t-set="counter" t-value="counter + 1"/>
+                                </t>
+
+                                <!-- Totals Row -->
+                                <tr>
+                                    <td colspan="2" style="text-align: center;">Total</td>
+                                    <td style="text-align: center;">KG</td>
+                                    <td style="text-align: center;"></td>
+                                    <td style="text-align: center;"></td>
+                                    <td style="text-align: center;"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <br/><br/>
+
+                        <div class="row">
+                            <div class="col-1">
+                                <span><strong>Accounts</strong></span>
+                            </div>
+                            <div class="col-5">
+                                <div style="display: inline-block; border-top: 1px solid black; width: 300px; margin-bottom: 5px;"></div>
+                            </div>
+                            <div class="col-2">
+                                <span><strong>Store Incharge</strong></span>
+                            </div>
+                            <div class="col-5">
+                                <div style="display: inline-block; border-top: 1px solid black; width: 300px; margin-bottom: 5px;"></div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-1">
+                                <span><strong>Guard</strong></span>
+                            </div>
+                            <div class="col-5">
+                                <div style="display: inline-block; border-top: 1px solid black; width: 300px; margin-bottom: 5px;"></div>
+                            </div>
+                            <div class="col-2">
+                                <span><strong>Received By</strong></span>
+                            </div>
+                            <div class="col-5">
+                                <div style="display: inline-block; border-top: 1px solid black; width: 300px; margin-bottom: 5px;"></div>
+                            </div>
+
+                        </div>
+
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

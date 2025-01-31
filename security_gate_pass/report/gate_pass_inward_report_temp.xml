@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_gate_pass_inward_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="o">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <br/><br/>
+                        <div class="col-12" style="text-align: center;">
+                            <h2>Inward Gatepass</h2>
+                        </div>
+                        <br/>
+
+                        <table class="table table-sm table-bordered" width="100%"
+                               style="line-height:1;">
+                            <tr>
+                                <th style="text-align: left;">
+                                    <b>Plot No</b>
+                                </th>
+                                <th style="text-align: left;">
+                                    <span t-esc="o.plot_no"/>
+                                </th>
+
+                                <th style="text-align: left;">
+                                    <b>Gate Pass No</b>
+                                </th>
+                                <th style="text-align: left;">
+                                    <span t-esc="o.sequence_gate_pass"/>
+                                </th>
+                            </tr>
+                            <tr>
+                                <th style="text-align: left;">
+                                    <b>Driver Name</b>
+                                </th>
+                                <th style="text-align: left;">
+                                    <span t-esc="o.driver_name"/>
+                                </th>
+
+                                <th style="text-align: left;">
+                                    <b>Date</b>
+                                </th>
+                                <th style="text-align: left;">
+                                    <span t-esc="o.visit_date"/>
+                                </th>
+                            </tr>
+                            <tr>
+                                <th style="text-align: left;">
+                                    <b>Vehicle No</b>
+                                </th>
+                                <th style="text-align: left;">
+                                    <span t-esc="o.vehicle_number"/>
+                                </th>
+                                <th style="text-align: left;">
+                                    <b>GRN No</b>
+                                </th>
+                                <th style="text-align: left;">
+                                    <span t-esc="o.label_type"/>
+                                </th>
+                            </tr>
+                        </table>
+
+
+                        <br/>
+                        <table class="table table-sm table-bordered" width="100%" style="line-height:1;">
+                            <thead>
+                                <tr style="border-bottom:1px solid black;">
+                                    <th style="text-align: left;"><b>Sr No</b></th>
+                                    <th style="text-align: left;"><b>Description</b></th>
+                                    <th style="text-align: left;"><b>Unit</b></th>
+                                    <th style="text-align: left;"><b>Qty</b></th>
+                                    <th style="text-align: left;"><b>Bags</b></th>
+                                    <th style="text-align: left;"><b>Discrepancy</b></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-set="counter" t-value="1"/>
+                                <t t-foreach="o.line_ids" t-as="line">
+                                    <tr>
+                                        <td><t t-esc="counter"/></td>
+                                        <td><t t-esc="line.products"/></td>
+                                        <td></td>
+                                        <td><t t-esc="line.qty" t-options="{'widget': 'float', 'precision': 2}"/></td>
+                                        <td></td>
+                                        <td></td>
+                                    </tr>
+                                    <t t-set="counter" t-value="counter + 1"/>
+                                </t>
+
+                                <!-- Totals Row -->
+                                <tr>
+                                    <td colspan="2" style="text-align: center;">Total</td>
+                                    <td style="text-align: center;">KG</td>
+                                    <td style="text-align: center;"></td>
+                                    <td style="text-align: center;"></td>
+                                    <td style="text-align: center;"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <br/><br/>
+
+                        <div class="row">
+                            <div class="col-2">
+                                <span><strong>Prepared By:</strong></span>
+                            </div>
+                            <div class="col-5">
+                                <div style="display: inline-block; border-top: 1px solid black; width: 250px; margin-bottom: 5px;"></div>
+                            </div>
+                            <div class="col-2">
+                                <span><strong>Store I/C:</strong></span>
+                            </div>
+                            <div class="col-5">
+                                <div style="display: inline-block; border-top: 1px solid black; width: 250px; margin-bottom: 5px;"></div>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-2">
+                                <span><strong>Guard</strong></span>
+                            </div>
+                            <div class="col-5">
+                                <div style="display: inline-block; border-top: 1px solid black; width: 250px; margin-bottom: 5px;"></div>
+                            </div>
+                            <div class="col-2">
+                                <span><strong>Received By</strong></span>
+                            </div>
+                            <div class="col-5">
+                                <div style="display: inline-block; border-top: 1px solid black; width: 250px; margin-bottom: 5px;"></div>
+                            </div>
+                        </div>
+
+                        <br/><br/>
+
+                        <div class="row">
+                            <div class="col-4">
+                                 <table class="table table-sm table-borderless" style="border: none;">
+                                    <tr>
+                                        <th style="text-align: center; border: none;" colspan="2">Store Section</th>
+                                    </tr>
+                                    <tr>
+                                        <td style="width: 150px; border: 1px solid black;">Empty bag weight</td>
+                                        <td style="border: 1px solid black;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="width: 150px; border: 1px solid black;">Received bags</td>
+                                        <td style="border: 1px solid black;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="width: 150px; border: 1px solid black;">Total tare weight</td>
+                                        <td style="border: 1px solid black;"></td>
+                                    </tr>
+                                </table>
+
+                                <br/><br/>
+                                <table class="table table-sm table-bordered">
+                                    <body>
+                                        <tr>
+                                            <td style="width: 150px">Weight slip</td>
+                                            <td></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 150px">Tare weight</td>
+                                            <td></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 150px">Net weight</td>
+                                            <td></td>
+                                        </tr>
+                                    </body>
+                                </table>
+
+
+                            </div>
+
+                            <div class="col-2"></div>
+
+                            <div class="col-6">
+                                <table class="table table-sm table-borderless" style="border: none;">
+                                    <tr>
+                                        <th style="text-align: center; border: none;" colspan="2">Lab Section</th>
+                                    </tr>
+                                    <tr>
+                                        <td style="width: 250px; border: 1px solid black;">Physical Test OK/Not Ok</td>
+                                        <td style="border: 1px solid black;"></td>
+                                    </tr>
+                                    <tr>
+                                        <td style="width: 250px; border: 1px solid black;">Will be Used In Grade</td>
+                                        <td style="border: 1px solid black;"></td>
+                                    </tr>
+                                </table>
+                                <span>Remarks...</span><br/><br/><br/><br/><br/>
+
+                                <div class="row">
+                                    <div class="col-4">
+                                        <span><strong>Approved By QC:</strong></span>
+                                    </div>
+                                    <div class="col-4">
+                                        <div style="display: inline-block; border-top: 1px solid black; width: 200px; margin-bottom: 5px;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <br/><br/><br/>
+                        <div class="row">
+                            <div class="col-2">
+                                <span><strong>Accounts</strong></span>
+                            </div>
+                            <div class="col-4">
+                                <div style="display: inline-block; border-top: 1px solid black; width: 200px; margin-bottom: 5px;"></div>
+                            </div>
+                            <div class="col-2">
+                                <span><strong>Approved By</strong></span>
+                            </div>
+                            <div class="col-4">
+                                <div style="display: inline-block; border-top: 1px solid black; width: 200px; margin-bottom: 5px;"></div>
+                            </div>
+                        </div>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

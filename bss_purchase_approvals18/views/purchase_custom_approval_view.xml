@@ -11,22 +11,25 @@
                     <field name="state" readonly="0" invisible="0"/>
                 </xpath>
 
-
                 <xpath expr="//header" position="replace">
-                    <header>
-                        <button name="action_approval_manager" type="object" string="Manager Approval"
-                                class="oe_highlight"
-                                groups="bss_purchase_approvals18.purchase_manager_approval"
-                                invisible="state not in 'draft'"/>
-                        <button name="action_approval_ceo" type="object" string="CEO Approval" class="oe_highlight"
-                                groups="bss_purchase_approvals18.purchase_ceo_approval"
-                                invisible="state not in 'manager_approval'"/>
 
-                        <button name="action_rfq_send" invisible="state != 'ceo_approval'" string="Send by Email" type="object"
-                                context="{'send_rfq':True}" class="oe_highlight"  data-hotkey="g"/>
-                        <button name="print_quotation" string="Print RFQ" type="object" invisible="state != 'ceo_approval'"
+                    <header>
+                        <button name="button_manager_approval" type="object" invisible="state not in ['draft', 'sent']"
+                                string="Manager Approval"
+                                context="{'validate_analytic': True}" class="oe_highlight" id="bid_approved"
+                                groups="bss_purchase_approvals18.purchase_approval_level1"/>
+                        <button name="button_ceo_approved" type="object" invisible="state not in ['manager_approval']"
+                                string="CEO Approval"
+                                context="{'validate_analytic': True}" class="oe_highlight" id="bid_approved"
+                                groups="bss_purchase_approvals18.purchase_approval_level2"/>
+                        <button name="action_rfq_send" invisible="state not in ['draft']" string="Send by Email"
+                                type="object"
+                                context="{'send_rfq':True}" class="oe_highlight" data-hotkey="g"/>
+                        <button name="print_quotation" string="Print RFQ" type="object"
+                                invisible="state not in ['draft', 'manager_approval', 'ceo_approval']"
                                 class="oe_highlight" groups="base.group_user" data-hotkey="k"/>
-                        <button name="button_confirm" type="object" invisible="state != 'sent'" string="Confirm Order"
+                        <button name="button_confirm" type="object" invisible="state != 'ceo_approval'"
+                                string="Confirm Order"
                                 context="{'validate_analytic': True}" class="oe_highlight" id="bid_confirm"
                                 data-hotkey="q"/>
                         <button name="button_approve" type="object" invisible="state != 'to approve'"
@@ -36,13 +39,12 @@
                                 context="{'create_bill':True}"
                                 invisible="state not in ('purchase', 'done') or invoice_status in ('no', 'invoiced')"
                                 data-hotkey="w"/>
-                        <button name="action_rfq_send" invisible="state != 'sent'" string="Re-Send by Email"
+                        <button name="action_rfq_send" invisible="state not in ['sent']"
+                                string="Re-Send by Email"
                                 type="object" context="{'send_rfq':True}" data-hotkey="g"/>
-                        <button name="print_quotation" string="Print RFQ" type="object" invisible="state != 'sent'"
+                        <button name="print_quotation" string="Print RFQ" type="object"
+                                invisible="state != 'sent'"
                                 groups="base.group_user" data-hotkey="k"/>
-                        <button name="button_confirm" type="object" invisible="state != 'ceo_approval'"
-                                context="{'validate_analytic': True}" string="Confirm Order" id="draft_confirm"
-                                data-hotkey="q"/>
                         <button name="action_rfq_send" invisible="state != 'purchase'" string="Send PO by Email"
                                 type="object" context="{'send_rfq':False}" data-hotkey="g"/>
                         <button name="confirm_reminder_mail" string="Confirm Receipt Date" type="object"
@@ -55,8 +57,10 @@
                         <button name="button_draft" invisible="state != 'cancel'" string="Set to Draft" type="object"
                                 data-hotkey="o"/>
                         <button name="button_cancel"
-                                invisible="state not in ('ceo_approval', 'to approve', 'sent', 'purchase')" string="Cancel"
+                                invisible="state not in ('draft', 'to approve', 'sent', 'purchase', 'manager_approval', 'ceo_approval')"
+                                string="Cancel"
                                 type="object" data-hotkey="x"/>
+
                         <button name="button_done" type="object" string="Lock" invisible="state != 'purchase'"
                                 data-hotkey="l"/>
                         <button name="button_unlock" type="object" string="Unlock" invisible="state != 'done'"

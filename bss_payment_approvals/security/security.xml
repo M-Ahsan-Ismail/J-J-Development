@@ -1,0 +1,16 @@
+<odoo>
+    <data>
+        <record model="ir.module.category" id="bss_payment_approval_groups_root">
+            <field name="name">Payments Two Level Approvals</field>
+            <field name="description">Manage Approval Security</field>
+        </record>
+        <record model="res.groups" id="payment_approval_level1">
+            <field name="name">1st Approval (Verified)</field>
+            <field name="category_id" ref="bss_payment_approval_groups_root"/>
+        </record>
+        <record model="res.groups" id="payment_approval_level2">
+            <field name="name">2nd Approval (Approved)</field>
+            <field name="category_id" ref="bss_payment_approval_groups_root"/>
+        </record>
+    </data>
+</odoo>

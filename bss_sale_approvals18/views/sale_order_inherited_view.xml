@@ -1,0 +1,91 @@
+<odoo>
+    <data>
+        <!--        Sale Order        -->
+        <record id="view_move_form_approvals" model="ir.ui.view">
+            <field name="name">sale.order.form.inherit</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//header" position="replace">
+                    <header>
+                        <field name="locked" invisible="1"/>
+                        <field name="authorized_transaction_ids" invisible="1"/>
+                        <!--    Approvals   -->
+                        <button name="action_waiting_approval"
+                                string="Submit for Approval"
+                                class="oe_highlight"
+                                type="object"
+                                invisible="state not in ['draft', 'sent']"/>
+                        <button name="button_manager_approval"
+                                type="object"
+                                invisible="state not in ['waiting']"
+                                string="Verified"
+                                class="oe_highlight"
+                                groups="bss_sale_approvals18.sale_approval_level1"/>
+                        <button name="button_ceo_approved"
+                                type="object"
+                                invisible="state not in ['manager_approval']"
+                                string="Approved"
+                                class="oe_highlight"
+                                groups="bss_sale_approvals18.sale_approval_level2"/>
+                        <!--    Approvals   -->
+                        <button name="payment_action_capture" type="object" data-hotkey="shift+g"
+                                string="Capture Transaction" class="oe_highlight"
+                                invisible="not authorized_transaction_ids"/>
+                        <button name="payment_action_void" type="object"
+                                string="Void Transaction" data-hotkey="shift+v"
+                                confirm="Are you sure you want to void the authorized transaction? This action can't be undone."
+                                invisible="not authorized_transaction_ids"/>
+                        <button id="create_invoice" name="%(sale.action_view_sale_advance_payment_inv)d"
+                                string="Create Invoice"
+                                type="action" class="btn-primary" data-hotkey="q"
+                                invisible="invoice_status != 'to invoice'"/>
+                        <button id="create_invoice_percentage" name="%(sale.action_view_sale_advance_payment_inv)d"
+                                string="Create Invoice"
+                                type="action" context="{'default_advance_payment_method': 'percentage'}" data-hotkey="q"
+                                invisible="invoice_status != 'no' or state != 'sale'"/>
+                        <button name="action_quotation_send" id="send_by_email_primary" string="Send by Email"
+                                type="object" data-hotkey="g"
+                                invisible="state != 'draft'" class="btn-primary"
+                                context="{'validate_analytic': True, 'check_document_layout': True}"/>
+                        <button name="action_quotation_send" id="send_proforma_primary" type="object"
+                                string="Send PRO-FORMA Invoice" class="btn-primary"
+                                groups="sale.group_proforma_sales"
+                                invisible="state != 'draft' or invoice_count &gt;= 1"
+                                context="{'proforma': True, 'validate_analytic': True}"/>
+                        <button name="action_confirm" id="action_confirm" data-hotkey="q"
+                                string="Confirm" class="btn-primary" type="object" context="{'validate_analytic': True}"
+                                invisible="state != 'ceo_approval'"/>
+                        <!--                        <button name="action_confirm" data-hotkey="q"-->
+                        <!--                                string="Confirm" type="object" context="{'validate_analytic': True}"-->
+                        <!--                                invisible="state != 'ceo_approval'"/>-->
+                        <button name="action_quotation_send" id="send_proforma" type="object"
+                                string="Send PRO-FORMA Invoice" groups="sale.group_proforma_sales"
+                                invisible="state == 'ceo_approval' or invoice_count &gt;= 1"
+                                context="{'proforma': True, 'validate_analytic': True}"/>
+                        <button name="action_quotation_send" id="send_by_email" string="Send by Email" type="object"
+                                invisible="state not in ('sent', 'sale')" data-hotkey="g"
+                                context="{'validate_analytic': True, 'check_document_layout': True}"/>
+
+                        <!-- allow to unlock locked orders even if setting is not enabled (e.g. orders synchronized from connectors) -->
+                        <button name="action_unlock" type="object" string="Unlock"
+                                invisible="not locked" groups="sales_team.group_sale_manager"/>
+                        <button name="action_preview_sale_order" string="Preview" type="object" class="btn-secondary"/>
+                        <button name="action_cancel" type="object" string="Cancel"
+                                invisible="state not in ('draft', 'sent', 'sale','waiting', 'manager_approval', 'ceo_approval') or not id or locked"
+                                data-hotkey="x"/>
+                        <button name="action_draft" invisible="state != 'cancel'" type="object"
+                                string="Set to Quotation" data-hotkey="w"/>
+                        <t groups="sale.group_auto_done_setting">
+                            <button name="action_lock" type="object" string="Lock"
+                                    help="If the sale is locked, you can not modify it anymore. However, you will still be able to invoice or deliver."
+                                    invisible="locked or state != 'sale'"
+                                    groups="sales_team.group_sale_manager"/>
+                        </t>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,sent,sale"/>
+                    </header>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

@@ -1,0 +1,49 @@
+<odoo>
+    <data>
+        <!--        Account Payment        -->
+        <record id="view_account_payment_form_approvals" model="ir.ui.view">
+            <field name="name">account.payment.form.inherit</field>
+            <field name="model">account.payment</field>
+            <field name="inherit_id" ref="account.view_account_payment_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//header" position="replace">
+                    <header>
+                      <!-- Approvals-->
+                      <button name="action_waiting_approval" string="Submit for Approval" class="oe_highlight"
+                                type="object"
+                                invisible="state != 'draft'"/>
+                        <button name="action_manager_approval" string="Verified" class="oe_highlight"
+                                type="object"
+                                invisible="state != 'waiting'"
+                                groups="bss_payment_approvals.payment_approval_level1"/>
+                        <button name="action_ceo_approval" string="Approved" class="oe_highlight"
+                                type="object"
+                                invisible="state != 'manager_approval'"
+                                groups="bss_payment_approvals.payment_approval_level2"/>
+                      <!-- Approvals-->
+                        <button name="action_post" string="Confirm" type="object" class="oe_highlight"
+                                invisible="state != 'ceo_approval'" data-hotkey="q"/>
+                        <button name="action_validate" string="Validate" type="object" class="oe_highlight"
+                                invisible="state != 'in_process' or move_id" data-hotkey="q"/>
+                        <button name="action_reject" string="Reject" type="object" class="oe_highlight"
+                                invisible="state != 'in_process' or not is_sent" data-hotkey="q"/>
+                        <button name="action_draft" string="Reset To Draft" type="object" class="btn btn-secondary"
+                                invisible="state not in ('in_process','paid','canceled')" groups="account.group_account_invoice" data-hotkey="w"/>
+                        <button name="action_cancel" string="Cancel" type="object"
+                                invisible="not id or not (state in ('draft', 'waiting', 'manager_approval', 'ceo_approval') or (state == 'in_process' and is_sent))"
+                                data-hotkey="x"/>
+                        <button string="Request Cancel" name="button_request_cancel" type="object"
+                                groups="account.group_account_invoice"
+                                invisible="state != 'in_process' or not move_id or not need_cancel_request"
+                                data-hotkey="w"/>
+                        <button name="mark_as_sent" string="Mark as Sent" type="object" data-hotkey="v"
+                                invisible="state != 'in_process' or is_sent or payment_method_code != 'manual'"/>
+                        <button name="unmark_as_sent" string="Unmark as Sent" type="object" data-hotkey="k"
+                                invisible="state != 'in_process' or not is_sent or payment_method_code != 'manual'"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,in_process,paid"/>
+                    </header>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

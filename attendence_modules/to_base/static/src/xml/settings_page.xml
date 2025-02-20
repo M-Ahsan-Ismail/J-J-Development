@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<templates id="template" xml:space="preserve">
+	<t t-inherit="web.SettingsPage" t-inherit-mode="extension" owl="1">
+	    <xpath expr="//t[@t-foreach='props.modules']" position="attributes">
+	        <attribute name="t-foreach">state.modules</attribute>
+	    </xpath>
+	</t>
+</templates>

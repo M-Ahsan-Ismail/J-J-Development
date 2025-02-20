@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+
+	<record id="res_country_view_search" model="ir.ui.view">
+		<field name="name">res.country.search</field>
+		<field name="model">res.country</field>
+		<field name="arch" type="xml">
+			<search string="Country Search">
+				<field name="name" />
+				<field name="code" />
+				<separator name="separator" /> <!-- for extending filters -->
+				<group expand="0" string="Group By">
+					<filter name="grp_currency" string="Currency"
+						context="{'group_by': 'currency_id'}" />
+				</group>
+			</search>
+		</field>
+	</record>
+
+</odoo>

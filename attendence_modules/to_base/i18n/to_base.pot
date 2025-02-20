@@ -1,0 +1,229 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* to_base
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 16.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-11-16 03:14+0000\n"
+"PO-Revision-Date: 2022-11-16 03:14+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: to_base
+#: model:ir.model,name:to_base.model_res_company
+msgid "Companies"
+msgstr ""
+
+#. module: to_base
+#: model:ir.model.fields,field_description:to_base.field_res_company__favicon
+msgid "Company Favicon"
+msgstr ""
+
+#. module: to_base
+#: model:ir.model,name:to_base.model_res_config_settings
+msgid "Config Settings"
+msgstr ""
+
+#. module: to_base
+#: model:ir.model,name:to_base.model_res_currency_rate
+msgid "Currency Rate"
+msgstr ""
+
+#. module: to_base
+#: model:ir.model,name:to_base.model_mail_template
+msgid "Email Templates"
+msgstr ""
+
+#. module: to_base
+#: model:ir.model,name:to_base.model_mail_thread
+msgid "Email Thread"
+msgstr ""
+
+#. module: to_base
+#: model:ir.model,name:to_base.model_mail_compose_message
+msgid "Email composition wizard"
+msgstr ""
+
+#. module: to_base
+#: model:ir.model.fields,field_description:to_base.field_res_company__font
+msgid "Font"
+msgstr ""
+
+#. module: to_base
+#: model:ir.model.fields,help:to_base.field_base_language_export__only_export_modules_infos_translation
+msgid ""
+"If this option is selected, the system will only export modules infos "
+"translation(name, summary and description)"
+msgstr ""
+
+#. module: to_base
+#: model:ir.model,name:to_base.model_base_language_install
+msgid "Install Language"
+msgstr ""
+
+#. module: to_base
+#: code:addons/to_base/models/to_base.py:0
+#, python-format
+msgid "Invalid input base number for EAN13 code"
+msgstr ""
+
+#. module: to_base
+#: code:addons/to_base/models/to_base.py:0
+#, python-format
+msgid "Invalid year '%s'"
+msgstr ""
+
+#. module: to_base
+#: model:ir.model,name:to_base.model_base_language_export
+msgid "Language Export"
+msgstr ""
+
+#. module: to_base
+#: code:addons/to_base/models/to_base.py:0
+#: code:addons/to_base/models/to_base.py:0
+#, python-format
+msgid ""
+"Local time zone is not defined. You may need to set a time zone in your "
+"user's Preferences."
+msgstr ""
+
+#. module: to_base
+#: model:ir.model,name:to_base.model_ir_ui_menu
+msgid "Menu"
+msgstr ""
+
+#. module: to_base
+#: model:ir.model,name:to_base.model_ir_module_module
+msgid "Module"
+msgstr ""
+
+#. module: to_base
+#: model:ir.model.fields,field_description:to_base.field_base_language_export__only_export_modules_infos_translation
+msgid "Only export modules infos translation"
+msgstr ""
+
+#. module: to_base
+#: code:addons/to_base/models/res_currency_rate.py:0
+#, python-format
+msgid "Only one currency rate per day allowed!"
+msgstr ""
+
+#. module: to_base
+#: model:ir.actions.server,name:to_base.cron_orphan_mail_messages_ir_actions_server
+#: model:ir.cron,cron_name:to_base.cron_orphan_mail_messages
+#: model:ir.cron,name:to_base.cron_orphan_mail_messages
+msgid "Remove Orphan Mail Messages"
+msgstr ""
+
+#. module: to_base
+#: model:ir.model,name:to_base.model_ir_actions_report
+msgid "Report Action"
+msgstr ""
+
+#. module: to_base
+#: model:ir.model,name:to_base.model_to_base
+msgid "TVTMA Base Model"
+msgstr ""
+
+#. module: to_base
+#: code:addons/to_base/models/to_base.py:0
+#, python-format
+msgid ""
+"The `start_day_offset` passed to the method `period_iter` must be greater "
+"than or equal to zero!"
+msgstr ""
+
+#. module: to_base
+#: code:addons/to_base/models/to_base.py:0
+#: code:addons/to_base/models/to_base.py:0
+#, python-format
+msgid "The given dt_from must be either date or datetime."
+msgstr ""
+
+#. module: to_base
+#: code:addons/to_base/models/to_base.py:0
+#, python-format
+msgid ""
+"The given dt_start and dt_end passed into the method "
+"`period_iter(period_name, dt_start, dt_end, start_day_offset)` must be in "
+"the same type. This could be a programming error..."
+msgstr ""
+
+#. module: to_base
+#: code:addons/to_base/models/to_base.py:0
+#: code:addons/to_base/models/to_base.py:0
+#, python-format
+msgid "The given dt_to must be either date or datetime."
+msgstr ""
+
+#. module: to_base
+#: code:addons/to_base/models/to_base.py:0
+#, python-format
+msgid ""
+"The given period_start_date must be either date or datetime type. This could"
+" be programming error..."
+msgstr ""
+
+#. module: to_base
+#: code:addons/to_base/models/to_base.py:0
+#, python-format
+msgid ""
+"The method get_weekdays_for_period(dt_from, dt_to) does not support the "
+"periods having more than 7 days"
+msgstr ""
+
+#. module: to_base
+#: model:ir.model.fields,help:to_base.field_res_company__favicon
+msgid ""
+"This field holds the image used to display a favicon for a given company."
+msgstr ""
+
+#. module: to_base
+#: model:ir.model.fields.selection,name:to_base.selection__res_company__font__times_new_roman
+msgid "Times New Roman"
+msgstr ""
+
+#. module: to_base
+#: code:addons/to_base/models/to_base.py:0
+#, python-format
+msgid ""
+"Wrong value passed to the argument representing the period. "
+"The value for `period_name` should be either "
+"'hourly' or 'daily' or 'weekly' or 'monthly' or 'quarterly' or 'biannually' or 'annually'"
+msgstr ""
+
+#. module: to_base
+#: code:addons/to_base/models/to_base.py:0
+#, python-format
+msgid ""
+"Wrong value passed to the argument `weekday` of the method `next_weekday`. "
+"The value for `weekday` must be >= 0 and <= 6"
+msgstr ""
+
+#. module: to_base
+#: code:addons/to_base/models/mail_thread.py:0
+#, python-format
+msgid ""
+"You are only allowed to send messages or log notes if you don't mention "
+"anyone since you don't have access right to add followers to this document."
+msgstr ""
+
+#. module: to_base
+#: code:addons/to_base/models/mail_thread.py:0
+#, python-format
+msgid ""
+"You may not be able to add followers. Here is the reason:\n"
+"%s"
+msgstr ""
+
+#. module: to_base
+#: code:addons/to_base/models/to_base.py:0
+#, python-format
+msgid "the method guess_lang has not been implemented yet"
+msgstr ""

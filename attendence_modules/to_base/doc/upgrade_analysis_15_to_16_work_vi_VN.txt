@@ -1,0 +1,657 @@
+---Classes in module ---
+
+FILE: to_base/fix_test.py
+
+def fix_AddonManifestPatched_setUp(self):
+def fix_test():
+
+FILE: to_base/__init__.py
+
+def _get_branding_module(branding_module='viin_brand'):
+    """
+    Wrapper for others to override
+    """
+
+def _get_db_name_plus():
+def test_installable(module, mod_path=None):
+    """
+    :param module: The name of the module (sale, purchase, ...)
+    :param mod_path: Physical path of module, if not providedThe name of the module (sale, purchase, ...)
+    """
+
+def check_viin_brand_module_icon(module):
+    """
+    Ensure module icon with
+        either '/viin_brand_originmodulename/static/description/icon.png'
+        or '/viin_brand/static/img/apps/originmodulename.png'
+        exists.
+    """
+
+def get_viin_brand_resource_path(mod, *args):
+def get_viin_brand_module_icon(mod):
+    """
+    This overrides default module icon with
+        either '/viin_brand_originmodulename/static/description/icon.png'
+        or '/viin_brand/static/img/apps/originmodulename.png'
+        where originmodulename is the name of the module whose icon will be overridden
+    provided that either of the viin_brand_originmodulename or viin_brand is installable
+    """
+
+def _get_brand_module_website(module):
+    """
+    This overrides default module website with '/branding_module/apriori.py'
+    where apriori contains dict:
+    modules_website = {
+        'account': 'account's website',
+        'sale': 'sale's website,
+    }
+    :return module website in apriori.py if exists else False
+    """
+
+def _get_manifest_plus(module, mod_path=None):
+def _test_if_loaded_in_server_wide():
+def _disable_currency_rate_unique_name_per_day():
+def _update_brand_web_icon_data(env):
+def _update_favicon(env):
+def pre_init_hook(cr):
+def post_init_hook(cr, registry):
+def uninstall_hook(cr, registry):
+def post_load():
+
+FILE: to_base/override.py
+
+def lru(self, model):
+def db_filter(dbs, host=None):
+
+FILE: to_base/controllers/my_ip.py
+
+class MyIPController(Controller):
+
+    @route([MY_IP_ROUTE], type='http', auth="public", website=True, sitemap=False)
+    def my_ip(self, **kwargs):
+        """
+        Method to return the IP of the remote host that sends the request to /my/ip/
+
+        @return: Return the IP of the remote host that sends the request to /my/ip/
+        @rtype: string
+        """
+
+
+FILE: to_base/controllers/__init__.py
+
+
+FILE: to_base/controllers/main.py
+
+class Database(http.Controller):
+    @http.route('/api/saas/initialize_database', type='json', auth='none')
+    def create(self, **kw):
+
+
+FILE: to_base/wizard/base_language_install.py
+
+class BaseLanguageInstall(models.TransientModel):
+    _inherit = 'base.language.install'
+
+
+    def lang_install(self):
+
+FILE: to_base/wizard/base_export_language.py
+
+class BaseLanguageExport(models.TransientModel):
+    _inherit = 'base.language.export'
+
+
+    only_export_modules_infos_translation = fields.Boolean(string='Only export modules infos translation',
+                                                    help="If this option is selected, the system will only export modules infos translation(name, summary and description)")
+    def act_getfile(self):
+    @api.model
+    def _retrieve_trans_from_manifest(self, module_name, lang):
+        """ Retrieve translated records per module from manifest.
+
+        :param module_name: module name
+        :param lang: language code to retrieve the translations
+                     retrieve source terms only if not set
+        """
+
+
+FILE: to_base/wizard/__init__.py
+
+
+FILE: to_base/models/ir_module_module.py
+
+class IrModuleModule(models.Model):
+    _inherit = 'ir.module.module'
+
+
+    def _update_translations(self, filter_lang=None, overwrite=False):
+    def _update_module_infos_translation(self, langs, cr, overwrite=False):
+    @api.model_create_multi
+    def create(self, vals):
+    def write(self, vals):
+
+FILE: to_base/models/to_base.py
+
+def after_commit(func):
+    """
+    Decorator to add some custom tasks after things are commit (and cursor is closed)
+    """
+
+    @wraps(func)
+    def wrapped(self, *args, **kwargs):
+        @self.env.cr.postcommit.add
+        def called_after():
+class TOBase(models.AbstractModel):
+    _name = 'to.base'
+
+    _description = 'TVTMA Base Model'
+
+    def barcode_exists(self, barcode, model_name=None, barcode_field='barcode', inactive_rec=True):
+        """
+        Method to check if the barcode exists in the input model
+
+        :param barcode: the barcode to check its existance in the model
+        :param model_name: The technical name of the model to check. For example, product.template, product.product, etc. If not passed, the current model will be used
+        :param barcode_field: the name of the field storing barcode in the corresponding model
+        :param inactive_rec: search both active and inactive records of the model for barcode existance check. Please pass False for this arg if the model does not have active field
+
+        :return: Boolean
+        """
+
+    def get_ean13(self, base_number):
+    def convert_local_to_utc(self, dt, force_local_tz_name=None, is_dst=None, naive=False):
+        """
+        :param dt: an instance of datetime object to convert to UTC
+        :param force_local_tz_name: the name of the local timezone from which the given dt will be converted.
+            In case of no tz_name passed, this method will try to find the timezone in context or the login user record
+        :param is_dst: respecting daylight saving time or not
+
+        :return: an instance of datetime object in UTC (with or without timezone notation depending on the given naive value)
+        :rtype: datetime
+        """
+
+    def convert_utc_to_local(self, utc_dt, force_local_tz_name=None, is_dst=None, naive=False):
+        """
+        Method to convert UTC time to local time
+        :param utc_dt: datetime in UTC
+        :param force_local_tz_name: the name of the timezone to convert. In case of no tz_name passed,
+            this method will try to find the timezone in context or the login user record
+        :param is_dst: respecting daylight saving time or not
+        :param naive: if True, returned datetime object comes without timezone info.
+
+        :return: datetime object presents local time
+        """
+
+    def time_to_float_hour(self, dt):
+        """
+        This method will convert a datetime object to a float that present the corresponding time without date. For example,
+            datetime.datetime(2019, 3, 24, 12, 44, 0, 307664) will become 12.733418795555554
+        :param dt: datetime object
+        :param type: datetime
+
+        :return: The extracted time in float. For example, 12.733418795555554 for datetime.time(12, 44, 0, 307664)
+        :rtype: float
+        """
+
+    def float_hours_to_time(self, float_hours, tzinfo=None):
+        """
+        Convert hours in float to datetime.time object
+        :param float_hours: a float indicate hours. For example: 10.5 for 10:30
+        :param tzinfo: set timezone for the converted time to return
+
+        :return: datetime.time object that presents the given float_hours
+        :rtype: time
+        """
+
+    def _find_last_date_of_period_from_period_start_date(self, period_name, period_start_date):
+        """
+        This method finds the last date of the given period defined by the period_name and the start date of the period. For example:
+        - if you pass 'monthly' as the period_name, date('2018-05-20') as the period_start_date, the result will be date('2018-06-20')
+        - if you pass 'quarterly' as the period_name, date('2018-05-20') as the date, the result will be date('2018-08-20')
+
+        :param period_name: (string) the name of the given period which is either 'weekly' or 'monthly' or 'quarterly' or 'biannually' or 'annually'
+        :param period_start_date: (datetime.datetime | datetime.date) the starting date of the period from which the period will be started
+
+        :return: (datetime.datetime) the last date of the period
+        :raise ValidationError: when the passed period_name is invalid
+        """
+
+    def _validate_period_name(self, period_name):
+    def find_first_date_of_period(self, period_name, given_date, start_day_offset=0):
+        """
+        This method finds the first date of the given period defined by period name and any date of the period
+
+        :param period_name: (string) the name of the given period which is either 'weekly' or 'monthly' or 'quarterly' or 'biannually' or 'annually'
+        :param given_date: datetime.datetime | datetime.date any datetime or date of the period to find
+        :param start_day_offset: integer to offset the first date of the given period.
+
+        :return: datetime.datetime | datetime.date the first date of the period
+        :rtype: datetime.datetime | datetime.date datetime or date, according to the type of the given given_date
+
+        :raise ValidationError: when the passed period_name is invalid
+        """
+
+    def find_last_date_of_period(self, period_name, given_date, date_is_start_date=False):
+        """
+        This method finds the last date of the given period defined by period name and any date of the period. For example:
+        - if you pass 'monthly' as the period_name, date('2018-05-20') as the date, the result will be date('2018-05-31')
+        - if you pass 'quarterly' as the period_name, date('2018-05-20') as the date, the result will be date('2018-06-30')
+        :param period_name: (string) the name of the given period which is either 'weekly' or 'monthly' or 'quarterly' or 'biannually' or 'annually'
+        :param date: (datetime.datetime) either the start date of the given period or any date of the period, depending on the passed value of the arg. date_is_start_date
+        :param date_is_start_date: (bool) True to indicate the given date is also the starting date of the given period_name, otherwise, the given date is any of the period's dates
+        :return: (datetime.datetime) the last date of the period
+        :raise ValidationError: when the passed period_name is invalid
+        """
+
+    def period_iter(self, period_name, dt_start, dt_end, start_day_offset=0):
+        """
+        Method to generate sorted dates for periods of the given period_name and dt_start and dt_end
+        :param period_name: (string) the name of the given period which is either 'weekly' or 'monthly' or 'quarterly' or 'biannually' or 'annually'
+        :param dt_start: datetime.datetime | datetime.date
+        :param dt_end: datetime.datetime | datetime.date
+        :param start_day_offset: default value is zero, which means that the start days are always the very first day of the period
+
+        :return: [list] list of datetime | date objects contain dt_start and end dates of found periods. For example:
+                if we pass [datetime.date(2018, 7, 4) and datetime.date(2018, 10, 31) and 0 as the dt_start and the dt_end and the
+                start_day_offset correspondingly, the result will be
+                    [datetime.date(2018, 7, 4),
+                    datetime.date(2018, 7, 31), datetime.date(2018, 8, 31), datetime.date(2018, 9, 30), datetime.date(2018, 10, 31)]
+        :rtype: list
+        """
+
+    def get_days_of_month_from_date(self, dt):
+    def get_day_of_year_from_date(self, date):
+        """
+        Return the day of year from date. For example, 2018-01-06 will return 6
+
+        :param date: date object
+        """
+
+        first_date = fields.Date.to_date('%s-01-01' % date.year)
+    def get_days_in_year(self, date):
+        """
+        Return number of days in year from year
+        """
+
+        if date.month > 2 or (date.month == 2 and date == fields.Datetime.end_of(date, 'month')):
+            is_leap_year = date.year % 4 == 0
+        # otherwise, the previous year of the dt_to's year will be
+        else:
+            is_leap_year = (date.year - 1) % 4 == 0
+        return 366 if is_leap_year else 365
+    
+    def get_hours_between_dates(self, dt_from, dt_to):
+        """
+        Return number of hours between two dates
+        """
+        diff_seconds = (dt_to - dt_from).total_seconds
+        return diff_seconds / 3600
+    
+    def get_days_between_dates(self, dt_from, dt_to):
+        """
+        Return number of days between two dates
+        """
+        return (dt_to - dt_from).days
+    
+    def get_weeks_between_dates(self, dt_from, dt_to):
+        """
+        Return number of weeks between two dates
+        """
+        diff_days = self.get_days_between_dates(dt_from, dt_to)
+    def get_months_between_dates(self, dt_from, dt_to):
+        """
+        Calculate number of months (in float) between two given dates (include both ends) that respects odd/even months
+
+        :return: number of months (in float) between two given dates
+        :rtype: float
+        """
+
+    def get_number_of_years_between_dates(self, dt_from, dt_to):
+        """
+        Calculate number of years (in float) between two given dates (excl. the dt_to) that respects leap years
+
+        :param dt_from: datetime | date
+        :param dt_to: datetime | date
+
+        :return: number of years (in float) between two given dates (excl dt_to)
+        :rtype: float
+        """
+
+    def get_weekdays_for_period(self, dt_from, dt_to):
+        """
+        Method to return the a dictionary in form of {int0:date, wd1:date, ...} where int0/int1
+            are integer 0~6 presenting weekdays and date1/date2 are dates that are the correspong weekdays
+        :param dt_from: datetime.datetime|datetime.date
+        :param dt_to: datetime.datetime|datetime.date
+        :return: dict{int0:date, wd1:date, ...}
+        """
+
+    def next_weekday(self, date, weekday=None):
+        """
+        Method to get the date in the nex tweek of the given `date`'s week with weekday is equal to the given `weekday`. For example,
+        - date: 2018-10-18 (Thursday)
+        - weekday:
+            0: will return 2018-10-22 (Monday next week)
+            1: will return 2018-10-23 (Tuesday next week)
+            2: will return 2018-10-24 (Wednesday next week)
+            3: will return 2018-10-25 (Thursday next week)
+            4: will return 2018-10-26 (Friday next week)
+            5: will return 2018-10-27 (Saturday next week)
+            6: will return 2018-10-28 (Sunday next week)
+            None: will return 2018-10-25 (the same week day next week)
+        :param date: (datetime.datetime or datetime.date) the given date to find the date next week
+        :param weekday: week day of the next week which is an integer from 0 to 6 presenting a day of week, or None to find the date of the same week day next week
+
+        :return: date of the same weekday next week
+        """
+
+    def split_date(self, date):
+        """
+        Method to split a date into year,month,day separatedly
+        :param date date:
+        """
+
+    def hours_time_string(self, hours):
+        """ convert a number of hours (float) into a string with format '%H:%M' """
+
+    def _zip_dir(self, path, zf, incl_dir=False):
+        """
+        :param path: the path to the directory to zip
+        :param zf: the ZipFile object which is an instance of zipfile.ZipFile
+        :type zf: ZipFile
+
+        :return: zipfile.ZipFile object that contain all the content of the path
+        """
+
+    def zip_dir(self, path, incl_dir=False):
+        """
+        zip a directory tree into a bytes object which is ready for storing in Binary field
+
+        :param path: the absolute path to the directory to zip
+        :type path: string
+
+        :return: return bytes object containing data for storing in Binary fields
+        :rtype: bytes
+        """
+
+    def zip_dirs(self, paths):
+        """
+        zip a tree of directories (defined by paths) into a bytes object which is ready for storing in Binary field
+
+        :param paths: list of absolute paths (string) to the directories to zip
+        :type paths: list
+
+        :return: return bytes object containing data for storing in Binary fields
+        :rtype: bytes
+        """
+
+    def guess_lang(self, sample):
+        """
+        This method is for others to implement.
+        """
+
+    def strip_accents(self, s):
+    def _no_accent_vietnamese(self, s):
+        """
+        Convert Vietnamese unicode string from 'Tiếng Việt có dấu' thanh 'Tieng Viet khong dau'
+        :param s: text: input string to be converted
+        :return : string converted
+        """
+
+    def sum_digits(self, n, number_of_digit_return=None):
+        """
+        This will sum all digits of the given number until the result has x digits where x is number_of_digit_return
+        :param n: the given number for sum of its digits
+        :type n: int|float
+        :param number_of_digit_return: the number of digist in the return result.
+            For example, if n=178 and number_of_digit_return=2, the result will be 16. However, if number_of_digit_return <= 1, the result will be 7 (=1+6 again)
+
+        :return: the sum of all the digits until the result has `number_of_digit_return` digits
+        :rtype: int
+        """
+
+    def find_nearest_lucky_number(self, n, rounding=0, round_up=False):
+        """
+        9 is lucky number
+        This will find the nearest integer if the given number that have digits sum = 9 (sum digits until 1 digit is returned)
+        :param n: the given number for finding its nearest lucky number
+        :type n: int|float
+        :param rounding: the number of digist for rounding
+            For example, if n=178999 and rounding=2, the result will be 178900. However, if rounding = 4, the result will be 170000
+
+        :return: the lucky number
+        :rtype: int
+        """
+
+    def get_host_ip(self):
+        """
+        This method return the IP of the host where the Odoo instance is running.
+        If the instance is deployed behind a reverse proxy, the returned IP will be the IP of the proxy instead.
+        """
+
+    def identical_images(self, img1, img2):
+        """
+        Compare 2 given image object of :class:`fields.Image` if they are identical
+        PIL module do not support `.svg` format (ref: https://pillow.readthedocs.io/en/5.1.x/handbook/image-file-formats.html)
+        So please don't compare 2 unsupported type images
+        :param: img1: fields.Image object
+        :param: img2: fields.Image object
+
+        :return: return True if 2 images ARE identical, otherwise return False
+        :rtype: boolean
+        :raise: OSError when image(s) in pillow unsupported type
+        """
+
+    def validate_year(self, year):
+        """
+        This method validates the given year and return the year in integer.
+
+        :param year: str|int the given year to validate
+        :return: the given year in integer that was validated
+        :rtype: int
+        :raise ValidationError: if the input year is neither a digit nor a digest > 0 and <= 9999
+        """
+
+    def break_timerange_for_midnight(self, start_dt, end_dt):
+        """
+        generate intervals broken by midnight (00:00:00)
+        for example datetime(2021-02-02 20:00:00) ~ datetime(2021-02-03 20:00:00) will produce
+        [datetime(2021-02-02 20:00:00), datetime(2021-02-03 00:00:00), datetime(2021-02-03 20:00:00)]
+        :param start_dt: datetime
+        :param end_dt: datetime
+
+        :return: list of datetimes with midnight inside
+        :rtype: list
+        """
+
+    @api.model
+    def splittor(self, recordset, max_rec_in_batch=None):
+        """ Splits the given recordset in batches of the given max_rec_in_batch or 1000
+        (if prefetch_max is not passed) to avoid entire-recordset-prefetch-effects
+        and & removes the previous batch from the cache after it's been iterated in full
+        :param recordset | list: the recordset to split into batches
+        :param max_rec_in_batch: max number of records in each splitted batch.
+            If not give or False evaluated, PREFETCH_MAX will be taken
+
+        :return: return an iterator
+        """
+
+    @api.model
+    def _update_brand_icon(self):
+    def mile2km(self, miles):
+    def km2mile(self, km):
+    def _remove_orphan_mail_messages(self):
+        """
+        This method finds mail.message records that link to res_id that do not exists
+        due to the bug https://github.com/odoo/odoo/pull/84863 and remove them
+        """
+
+        def _remove_messages(batch, idx_from, idx_to, total):
+        def _threaded_remove_messages(messages):
+            """
+            slice the given messages into pieces of smaller batches as long as
+            total number of batches is equal to half of db_maxconn to avoid
+            error of "connection pool is full"
+            Then put each batch into a thread for parallel exec
+            """
+
+    def get_ratio_between_periods(self, period1, period2, given_date=False):
+        """
+        This method calculates the ratio between 2 time periods. For example:
+        - if you pass 'monthly' as the period1, 'daily' as the period2, date('2024-02-09') as the given_date, the result will be 29/7
+
+        :param period1: (string) the name of the given period which is either 'weekly' or 'monthly' or 'quarterly'
+        or 'biannually' or 'annually' or 'hourly' or 'daily'
+        :param period2: (string) the name of the given period which is either 'weekly' or 'monthly' or 'quarterly'
+        or 'biannually' or 'annually' or 'hourly' or 'daily'
+        :param given_date: (false | datetime.date) the starting date of the period from which the period will be started
+        , get current date if value is false
+
+        :return: (float) ratio between periods
+        :raise ValidationError: when the passed period_name is invalid
+        """
+
+    def calculate_weights(self, *item_weights, precision_digits=None, precision_rounding=None, rounding_method='HALF-UP'):
+        """
+        This methods calculate weight of each in percentage of the total weight without that requirement that total weight is 100%
+        For example, if you pass 2 and 6, the result will return [25.0, 75.0]
+
+        :param *item_weights: item weights. For example: calculate_weights(2, 6) will return [25.0, 75.0]
+        :param int precision_digits: number of fractional digits to round returned weights to.
+        :param float precision_rounding: decimal number of returned weights representing the minimum
+            non-zero value at the desired precision (for example, 0.01 for a 
+            2-digit precision).
+        :param rounding_method: the rounding method used: 'HALF-UP', 'UP' or 'DOWN',
+            the first one rounding up to the closest number with the rule that
+            number>=0.5 is rounded up to 1, the second always rounding up and the
+            latest one always rounding down.
+        
+        :return: list of weights in float that are compatible with percentage widget. For example, calculate_weights(2, 6) will return [0.25, 0.75]
+        """
+
+    def fibonacci(self, nterms, deduplicate_1=False):
+        """
+        Method to generate Fibonacci sequence.
+        Shamelessly copy from https://www.programiz.com/python-programming/examples/fibonacci-sequence ^_^
+        
+        :param nterms: number of terms. For example, if nterms = 5, the return result will be a list of 5 items
+        :param deduplicate_1: if True, the first 1 in the return series will be removed when nterms >= 3
+            For example, fibonacci(3, True) will return [0, 1, 2] instead of [0, 1, 1]
+
+        :return: Fibonacci sequence
+        :rtype: list
+        """
+
+
+FILE: to_base/models/ir_ui_menu.py
+
+class IrUiMenu(models.Model):
+    _inherit = 'ir.ui.menu'
+
+
+    @api.model
+    def _build_viin_web_icon_path_from_image(self, img_path):
+        """
+        This method will turn `/module_name/path/to/image` and `module_name/path/to/image`
+        into 'module_name,path/to/image' which is for web_icon
+
+        @param img_path: path to the image that will be used for web_icon.
+            The path must in the format of either `/module_name/path/to/image` or `module_name/path/to/image`
+
+        @return: web_icon string (e.g. 'module_name,path/to/image')
+        """
+
+    def _compute_web_icon_data(self, web_icon):
+        """
+        Override to take web_icon for menus from
+            either '/viin_brand_originmodulename'/static/description/icon.png'
+            or '/viin_brand/static/img/apps/originmodulename.png'
+        """
+
+
+FILE: to_base/models/mail_template.py
+
+class MailTemplate(models.Model):
+    _inherit = 'mail.template'
+
+
+    @api.model
+    def _replace_mail_template_by_brand(self, values):
+        """
+        This overrides to replace mail template by brand with '/branding_module/apriori.py'
+        where apriori contains dict:
+        mail_template_terms = [
+            ('<a target="_blank" href="https://www.odoo.com?utm_source=db&amp;utm_medium=portalinvite" style="color: #875A7B;">Odoo</a>', '<a target="_blank" href="https://viindoo.com?utm_source=db&amp;utm_medium=portalinvite" style="color: #875A7B;">Viindoo</a>'),
+            ('Odoo', 'Viindoo'),
+        ]
+        :return: list with a tuple with the name and base64 content of the attachment by brand
+        """
+
+    def generate_email(self, res_ids, fields):
+
+FILE: to_base/models/res_currency_rate.py
+
+class ResCurrencyRate(models.Model):
+    _inherit = 'res.currency.rate'
+
+
+    @api.constrains('name', 'currency_id', 'company_id')
+    def _constraint_currency_rate_unique_name_per_day(self):
+
+FILE: to_base/models/ir_actions_report.py
+
+class IrActionsReport(models.Model):
+    _inherit = "ir.actions.report"
+
+
+    @api.model
+    def _build_wkhtmltopdf_args(
+
+FILE: to_base/models/res_config.py
+
+class ResConfigSettings(models.TransientModel):
+    _inherit = 'res.config.settings'
+
+
+    @api.model
+    def get_viin_brand_modules_icon(self, modules):
+
+FILE: to_base/models/res_company.py
+
+class Company(models.Model):
+    _inherit = 'res.company'
+
+
+    def _get_default_favicon(self, original=False):
+    font = fields.Selection(selection_add=[('Times New Roman', 'Times New Roman')])
+    favicon = fields.Binary(string="Company Favicon", help="This field holds the image used to display a favicon for a given company.", default=_get_default_favicon)
+
+FILE: to_base/models/mail_compose_message.py
+
+class MailComposer(models.TransientModel):
+    _inherit = 'mail.compose.message'
+
+
+    def _onchange_template_id(self, template_id, composition_mode, model, res_id):
+        """ This overrides to replace mail template by branding when preview email template,
+        that using wizard to send email.
+        """
+
+
+FILE: to_base/models/__init__.py
+
+
+FILE: to_base/models/mail_thread.py
+
+class MailThread(models.AbstractModel):
+    _inherit = 'mail.thread'
+
+
+    def message_subscribe(self, partner_ids=None, subtype_ids=None):
+
+FILE: to_base/migrations/13.0.0.4/post-migration.py
+
+def migrate(cr, version):
+
+FILE: to_base/migrations/13.0.0.3/post-migration.py
+
+def migrate(cr, version):

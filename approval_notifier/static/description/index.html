@@ -1,0 +1,112 @@
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <div class="oe_picture" style="max-height: initial;">
+            <h2 class="oe_slogan">Approval Notification</h2>
+            <h4 class="oe_slogan">Overview!</h4>
+            <p class="text-center">
+                This module is for notify user to approve records
+                which are waiting. Some time user forgot to approve.
+                With this user can configure the model which will need to approve.
+                For example there some sale orders are pending for draft state for approving. User forgot to approve.
+                With this module user need to configure approval model with
+                model=='Sale Order', approval group == 'Sales/User:All Documents', state='draft'.
+                Then scheduler will send mail with link to approval user. Then user can approve easily.
+            </p>
+        </div>
+    </div>
+</section>
+<section class="oe_container">
+    <div class="oe_row">
+        <h4 class="oe_slogan">Menu and List View!</h4>
+        <div class="oe_span6">
+            <p class="oe_mt32">
+                User need to go Settings>Technical menu>Approval Model, menu.
+                Here User will see all record for approval notifire.
+                User need seelct for update or create new record from here.
+            </p>
+        </div>
+        <div class="oe_span6">
+            <div class="oe_row_img oe_centered">
+                <img class="oe_picture oe_screenshot" src="approval_menu.png">
+            </div>
+        </div>
+    </div>
+</section>
+<section class="oe_container oe_dark">
+    <div class="oe_row">
+        <h4 class="oe_slogan">Form View!</h4>
+        <div class="oe_span6">
+            <div class="oe_row_img oe_centered">
+                <img class="oe_picture oe_screenshot" src="approval_form.png">
+            </div>
+        </div>
+        <div class="oe_span6">
+            <p class="oe_mt32">
+                When user set create/update, there must be model and group need to select.
+                This shouldn't be empty. Also user can activate or deactivate the record.
+            </p>
+        </div>
+    </div>
+</section>
+<section class="oe_container">
+    <div class="oe_row">
+        <h4 class="oe_slogan">Select State!</h4>
+        <div class="oe_span6">
+            <p class="oe_mt32">
+                This is most important. User need to select the state. When user click the <b>Select State</b> button
+                then this pop up window will open. User will select state from this window. Then need to click
+                <b>Save</b> button. Also user can change state from here.
+            </p>
+        </div>
+        <div class="oe_span6">
+            <div class="oe_row_img oe_centered">
+                <img class="oe_picture oe_screenshot" src="approval_stateadd.png">
+            </div>
+        </div>
+    </div>
+</section>
+<section class="oe_container oe_dark">
+    <div class="oe_row">
+        <h4 class="oe_slogan">Scheduler!</h4>
+        <div class="oe_span6">
+            <div class="oe_row_img oe_centered">
+                <img class="oe_picture oe_screenshot" src="approval_cron.png">
+            </div>
+        </div>
+        <div class="oe_span6">
+            <p class="oe_mt32">
+                After finish approval configuration then user can change scheduler time.
+                Need to go Settings>Technical menu>Schedule Actions, in Automation section.
+                This will automatically run periodically. User can change time with change
+                <b>Next Execution Date</b> field.
+                Also this can be run manually with clinking <b>Run Manually</b> button.
+            </p>
+        </div>
+    </div>
+</section>
+<section class="oe_container">
+    <div class="oe_row">
+        <h4 class="oe_slogan">Mail!</h4>
+        <div class="oe_span6">
+            <p class="oe_mt32">
+                Scheduler will send mail with pending links. User can easily open pending records.
+                When user click the link this will take to pending window.
+            </p>
+        </div>
+        <div class="oe_span6">
+            <div class="oe_row_img oe_centered">
+                <img class="oe_picture oe_screenshot" src="approval_mailbody.png">
+            </div>
+        </div>
+    </div>
+</section>
+<section class="oe_container">
+    <div class="oe_row oe_spaced">
+        <div class="oe_picture" style="max-height: initial;">
+            <div class="oe_slogan" style="margin: 10px 0 0 0;">
+                <a class="btn btn-lg mt8 oe_purple" href="https://logicbite.wordpress.com/contact">
+                    <i class="fa fa-phone" style="margin-right: 6px;"></i>Contact us</a>
+            </div>
+        </div>
+    </div>
+</section>

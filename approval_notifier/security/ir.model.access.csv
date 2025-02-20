@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_approval_model,access_approval_model,model_approval_model,base.group_system,1,1,1,1
+access_approval_model_state,access_approval_model_state,model_approval_model_state_wizard,base.group_system,1,1,1,1

@@ -1,0 +1,65 @@
+<odoo>
+    <data>
+        <record id="account_asset_form_inherit" model="ir.ui.view">
+            <field name="name">account.asset.form</field>
+            <field name="model">account.asset</field>
+            <field name="inherit_id" ref="account_asset.view_account_asset_form"/>
+            <field name="priority" eval="8"/>
+            <field name="arch" type="xml">
+                <xpath expr="//header" position="replace">
+                    <header>
+
+                        <button name="submit_for_approval" type="object" invisible="state not in ['draft']"
+                                string="Submit For Approval"
+                                class="oe_highlight"/>
+
+                        <button name="button_first_approval" type="object"
+                                invisible="state not in ['submit_for_approval']"
+                                string="Verify"
+                                class="oe_highlight"
+                                groups="bss_asset_approvals18.asset_approval_verify"/>
+
+                        <button name="button_second_approved" type="object" invisible="state not in ['verify']"
+                                string="Approve"
+                                class="oe_highlight"
+                                groups="bss_asset_approvals18.asset_approval_approve"/>
+
+
+                        <button name="validate" invisible="state != 'approve'" string="Confirm" type="object"
+                                class="oe_highlight" data-hotkey="q"/>
+
+
+                        <button type="object" name="compute_depreciation_board" string="Compute Depreciation"
+                                invisible="state != 'approve'" data-hotkey="d"/>
+
+                        <button name="set_to_draft" string="Set to Draft" type="object"
+                                invisible="depreciation_move_ids or state not in ['open', 'cancelled']"/>
+
+                        <button name="set_to_running" string="Set to Running" type="object"
+                                invisible="state != 'close'"/>
+
+                        <button name="resume_after_pause" string="Resume Depreciation" type="object"
+                                class="oe_highlight" invisible="state != 'paused'"/>
+
+                        <button name="action_asset_modify" invisible="state != 'open'" string="Modify Depreciation"
+                                type="object" data-hotkey="e" class="oe_highlight"/>
+
+                        <button name="action_save_model" invisible="state not in ('open', 'paused', 'close')"
+                                string="Save as Model" type="object" data-hotkey="m"/>
+
+                        <button name="set_to_cancelled" string="Cancel Asset" type="object"
+                                invisible="state not in ['open','draft','submit_for_approval','verify','approve']"
+                                data-hotkey="x"/>
+
+                        <field name="state" widget="statusbar" statusbar_visible="draft,open"
+                               invisible="state == 'model'"/>
+
+
+                    </header>
+                </xpath>
+
+
+            </field>
+        </record>
+    </data>
+</odoo>

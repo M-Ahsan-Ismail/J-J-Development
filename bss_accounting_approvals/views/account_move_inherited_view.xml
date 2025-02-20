@@ -1,0 +1,119 @@
+<odoo>
+    <data>
+        <!--        Account Move        -->
+        <record id="view_move_form_approvals" model="ir.ui.view">
+            <field name="name">account.move.form.inherit</field>
+            <field name="model">account.move</field>
+            <field name="inherit_id" ref="account.view_move_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//header" position="replace">
+                    <header>
+                        <!-- Submit for Approval -->
+                        <button name="action_waiting_approval" string="Submit for Approval" class="oe_highlight"
+                                type="object"
+                                invisible="state != 'draft'"/>
+                        <!-- 1st Approval -->
+                        <button name="action_manager_approval" string="Verified" class="oe_highlight"
+                                type="object"
+                                invisible="state != 'waiting'"
+                                groups="bss_accounting_approvals.accounting_approval_level1"/>
+                        <!-- 2nd Approval -->
+                        <button name="action_ceo_approval" string="Approved" class="oe_highlight"
+                                type="object"
+                                invisible="state != 'manager_approval'"
+                                groups="bss_accounting_approvals.accounting_approval_level2"/>
+                        <!-- Post -->
+                        <button name="action_post" string="Post" class="oe_highlight"
+                                type="object" groups="account.group_account_invoice" data-hotkey="q"
+                                context="{'validate_analytic': True, 'disable_abnormal_invoice_detection': False}"
+                                invisible="hide_post_button or state != 'ceo_approval' or move_type != 'entry'"/>
+                        <button name="action_post" string="Confirm" class="oe_highlight"
+                                type="object" groups="account.group_account_invoice" data-hotkey="q"
+                                context="{'validate_analytic': True, 'disable_abnormal_invoice_detection': False}"
+                                invisible="state != 'ceo_approval' or hide_post_button or move_type == 'entry'"/>
+                        <!--                                invisible="hide_post_button or move_type == 'entry' or display_inactive_currency_warning"/>-->
+                        <!-- Send (only invoices) -->
+                        <button name="action_invoice_sent"
+                                type="object"
+                                string="Print &amp; Send"
+                                invisible="state != 'posted' or is_being_sent or invoice_pdf_report_id or move_type not in ('out_invoice', 'out_refund')"
+                                class="oe_highlight"
+                                data-hotkey="y"/>
+                        <button name="action_invoice_sent"
+                                type="object"
+                                string="Print &amp; Send"
+                                invisible="state != 'posted' or not is_being_sent and not invoice_pdf_report_id or move_type not in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund')"
+                                data-hotkey="y"/>
+                        <!-- Register Payment (only invoices / receipts) -->
+                        <button name="action_register_payment" id="account_invoice_payment_btn"
+                                type="object" class="oe_highlight"
+                                invisible="(
+                                    state != 'posted'
+                                    or payment_state not in ('not_paid', 'partial', 'in_payment')
+                                    or move_type not in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt')
+                                    or invoice_has_outstanding
+                                )"
+                                context="{'dont_redirect_to_payments': True, 'display_account_trust': True}"
+                                string="Pay" data-hotkey="g"
+                                groups="account.group_account_invoice"/>
+                        <!-- Register Payment (only invoices / receipts, with outstanding payments) -->
+                        <button name="action_register_payment" id="account_invoice_payment_secondary_btn"
+                                type="object"
+                                invisible="(
+                                    state != 'posted'
+                                    or payment_state not in ('not_paid', 'partial', 'in_payment')
+                                    or move_type not in ('out_invoice', 'out_refund', 'in_invoice', 'in_refund', 'out_receipt', 'in_receipt')
+                                    or not invoice_has_outstanding
+                                )"
+                                context="{'dont_redirect_to_payments': True, 'display_account_trust': True}"
+                                string="Pay" data-hotkey="g"
+                                groups="account.group_account_invoice"/>
+                        <!-- Preview (only customer invoices) -->
+                        <button name="preview_invoice" type="object" string="Preview" data-hotkey="o"
+                                title="Preview invoice"
+                                invisible="move_type not in ('out_invoice', 'out_refund') or state in ['draft', 'waiting','manager_approval', 'ceo_approval', 'cancel']"/>
+                        <!-- Reverse -->
+                        <button name="%(account.action_view_account_move_reversal)d" string="Reverse Entry"
+                                type="action" groups="account.group_account_invoice" data-hotkey="z"
+                                invisible="move_type != 'entry' or state != 'posted' or payment_state == 'reversed'"/>
+                        <button name="action_reverse" string='Credit Note'
+                                type='object' groups="account.group_account_invoice"
+                                invisible="move_type not in ('out_invoice', 'in_invoice') or state != 'posted'"
+                                data-hotkey="shift+n"/>
+                        <!-- Cancel -->
+                        <button name="button_cancel" string="Cancel Entry" type="object"
+                                groups="account.group_account_invoice" data-hotkey="x"
+                                invisible="not id or state not in ['draft','waiting', 'manager_approval','ceo_approval'] or move_type != 'entry'"/>
+                        <button name="button_cancel" string="Cancel" type="object"
+                                groups="account.group_account_invoice" data-hotkey="x"
+                                invisible="not id or state not in ['draft','waiting', 'manager_approval','ceo_approval'] or move_type == 'entry'"/>
+                        <button name="button_draft" string="Reset to Draft" type="object"
+                                groups="account.group_account_invoice"
+                                invisible="not show_reset_to_draft_button" data-hotkey="r"/>
+                        <button name="button_hash" string="Lock" type="object" groups="account.group_account_invoice"
+                                invisible="not restrict_mode_hash_table or inalterable_hash or state != 'posted'"/>
+                        <button string="Request Cancel"
+                                name="button_request_cancel"
+                                type="object"
+                                groups="account.group_account_invoice"
+                                invisible="state != 'posted' or show_reset_to_draft_button or not need_cancel_request"
+                                data-hotkey="w"/>
+
+                        <!-- Set as Checked -->
+                        <button name="button_set_checked" string="Set as Checked" type="object"
+                                groups="account.group_account_invoice"
+                                invisible="checked or state in ['draft', 'waiting','manager_approval', 'ceo_approval']"
+                                data-hotkey="k"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,posted"
+                               groups="!account.group_account_secured"/>
+                        <field name="state" widget="account_move_statusbar_secured" statusbar_visible="draft,posted"
+                               groups="account.group_account_secured"/>
+                    </header>
+                </xpath>
+            </field>
+
+        </record>
+
+
+    </data>
+</odoo>

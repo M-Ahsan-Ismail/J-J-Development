@@ -1,0 +1,1352 @@
+---Classes in module ---
+
+FILE: to_attendance_device/__init__.py
+
+
+FILE: to_attendance_device/wizard/device_confirm_wizard.py
+
+class DeviceConfirmWizard(models.TransientModel):#Không thay đổi: cung cấp wizard base cho việc hiển thị thông tin hành động trước khi người dùng thực hiện xác nhận
+    _name = 'device.confirm.wizard'
+
+    _description = 'Machine Confirm Wizard'
+
+    def _default_attendance_device(self):#Không thay đổi: lấy máy chấm công mặc định
+    def _default_title(self):#Không thay đổi: lấy tiêu đề mặc định
+    def _default_content(self):#Không thay đổi: lấy nội dung mặc định
+def _default_safe_confirm(self):#Không thay đổi: lấy giá trị mặc định cho trường safe_confirm
+    device_id = fields.Many2one('attendance.device', default=_default_attendance_device)
+    title = fields.Char(string='Title of confirmation', default=_default_title)
+    content = fields.Text(string='Confirmation content', default=_default_content)
+    safe_confirm = fields.Boolean(string='Safety To Confirm', default=_default_safe_confirm)
+    safe_checked = fields.Boolean(string='Safe Checked', default=False)
+    def ok(self):#Không thay đổi: hàm xử lý khi người dùng nhấn nút OK
+
+FILE: to_attendance_device/wizard/__init__.py# Không thay đổi
+
+
+FILE: to_attendance_device/wizard/employee_upload_wizard.py# Không thay đổi: Wizard phục vụ chức năng "Tải nhân viên lên máy chấm công"
+
+class EmployeeUploadLine(models.TransientModel):# Không thay đổi
+    _name = 'employee.upload.line'
+
+    _description = 'Employee Upload Details'
+
+    wizard_id = fields.Many2one('employee.upload.wizard', required=True, ondelete='cascade')
+    device_id = fields.Many2one('attendance.device', string='Device', required=True, ondelete='cascade')
+    employee_id = fields.Many2one('hr.employee', string='Employees to upload', required=True, ondelete='cascade')
+    def upload_employees(self):
+class EmployeeUploadWizard(models.TransientModel):# Không thay đổi
+    _name = 'employee.upload.wizard'
+
+    _description = 'Employee Upload Wizard'
+
+    @api.model
+    def _default_get_employee_ids(self):
+    device_ids = fields.Many2many('attendance.device', 'employee_upload_wizard_attendance_device_rel', 'wizard_id', 'device_id',
+                                  string='Devices', required=True,
+                                  compute='_compute_devices', store=True, readonly=False)
+    employee_ids = fields.Many2many('hr.employee', 'employee_upload_wizard_hr_employee_rel', 'wizard_id', 'employee_id',
+                                    string='Employees to upload', default=_default_get_employee_ids, required=True)
+    line_ids = fields.One2many('employee.upload.line', 'wizard_id', string='Upload Details', compute='_compute_line_ids',
+                               store=True, readonly=False)
+    @api.depends('employee_ids')
+    def _compute_devices(self):
+    def _prepare_lines(self):
+    @api.depends('employee_ids', 'device_ids')
+    def _compute_line_ids(self):
+    def action_employee_upload(self):#Không thay đổi: tải nhân viên lên máy chấm công
+
+FILE: to_attendance_device/pyzk/setup.py
+
+
+FILE: to_attendance_device/pyzk/test.py
+
+
+FILE: to_attendance_device/pyzk/__init__.py
+
+
+FILE: to_attendance_device/models/attendance_state.py
+
+class AttendanceState(models.Model):#Không thay đổi
+    _name = 'attendance.state'
+
+    _inherit = 'mail.thread'
+
+    _description = 'Attendance State'
+
+    name = fields.Char(string='Name', help="The name of the attendance state. E.g. Login, Logout, Overtime Start, etc", required=True, translate=True,
+                       tracking=True)
+    activity_id = fields.Many2one('attendance.activity', string='Activity', required=True,
+                                  help="Attendance activity, e.g. Normal Working, Overtime, etc", tracking=True)
+    code = fields.Integer(string='Code Number', help="An integer to express the state code", required=True, tracking=True)
+    type = fields.Selection([('checkin', 'Check-in'),
+                            ('checkout', 'Check-out')], string='Activity Type', required=True, tracking=True)
+    active = fields.Boolean(default=True)
+    _sql_constraints = [
+        ('code_unique',
+
+         'UNIQUE(code)',
+
+         "The Code must be unique!"),
+
+        ('name_activity_id_unique',
+
+         'UNIQUE(name, activity_id)',
+
+         "The state name must be unique within the same activity!"),
+
+        ('name_activity_id_unique',
+
+         'UNIQUE(type, activity_id)',
+
+         "The Activity Type and Activity must be unique! Please recheck if you have previously defined an attendance status with the same Activity Type and Activity"),
+
+    ]
+
+    def name_get(self):
+        """
+        name_get that supports displaying tags with their code as prefix
+        """
+
+    @api.model
+    def name_search(self, name, args=None, operator='ilike', limit=100):
+        """
+        name search that supports searching by tag code
+        """
+
+
+FILE: to_attendance_device/models/user_attendance.py
+
+class UserAttendance(models.Model):#Không thay đổi: Thông tin chấm công lấy từ máy chấm công
+    _name = 'user.attendance'
+
+    _description = 'User Attendance'
+    _order = 'timestamp DESC, user_id, status, attendance_state_id, device_id'
+
+    device_id = fields.Many2one('attendance.device', string='Attendance Machine', required=True, ondelete='restrict', index=True)
+    user_id = fields.Many2one('attendance.device.user', string='Machine User', required=True, ondelete='cascade', index=True)
+    timestamp = fields.Datetime(string='Timestamp', required=True, index=True,
+                                help="The date and time at which the employee took a check in/out action at the attendance machine")
+    status = fields.Integer(string='Machine Attendance State', required=True,
+                            help="The state which is the unique number stored in the machine to"
+                            " indicate type of attendance (e.g. 0: Checkin, 1: Checkout, etc)")
+    attendance_state_id = fields.Many2one('attendance.state', string='Software Attendance State',
+                                          help="This technical field is to map the attendance"
+                                          " status stored in the machine and the attendance status in Odoo", required=True, index=True)
+    activity_id = fields.Many2one('attendance.activity', related='attendance_state_id.activity_id', store=True, index=True)
+    hr_attendance_id = fields.Many2one('hr.attendance', string='HR Attendance', ondelete='set null',
+                                       help="The technical field to link Machine Attendance Data with Odoo Attendance Data", index=True)
+    type = fields.Selection(string='Activity Type', related='attendance_state_id.type', store=True)
+    employee_id = fields.Many2one('hr.employee', string='Employee', related='user_id.employee_id', store=True, index=True)
+    synced = fields.Boolean(string='Synced', help="This field is to indicate whether the attendance data is synchronized to Odoo or not")# Thêm mới để đánh dấu đã đồng bộ hay chưa
+
+    _sql_constraints = [
+        ('unique_user_id_device_id_timestamp',
+
+         'UNIQUE(user_id, device_id, timestamp)',
+
+         "The Timestamp and User must be unique per machine"),
+
+    ]
+
+    @api.model_create_multi
+    def create(self, vals_list):
+    @api.constrains('status', 'attendance_state_id')
+    def constrains_status_attendance_state_id(self):#Không thay đổi
+    def _prepare_last_hr_attendance_domain(self):#Không thay đổi
+    def _get_last_hr_attendance(self, user_attendance, hr_attendances):#Không thay đổi
+    def _prepare_hr_attendance_vals(self):#Không thay đổi
+    def _create_hr_attendance(self):#Không thay đổi
+    def _sync_attendance(self):#Thay đổi theo Todo: đồng bộ dữ liệu giữa máy chấm công và hệ thống
+        """
+        This method synchronizes `user.attendance` data into `hr.attendance` data
+        """
+
+    def action_sync_attendance(self):#Không thay đổi: đồng bộ dữ liệu giữa máy chấm công và hệ thống từ giao diện
+    @api.model
+    def _prepare_unsynch_data_domain(self):#Thay đổi: thêm synced = False vào domain
+    @api.model
+    def _cron_synch_hr_attendance(self):#Không thay đổi: tự động đồng bộ dữ liệu giữa máy chấm công và hệ thống bằng cron
+
+FILE: to_attendance_device/models/attendance_device.py
+
+class AttendanceDevice(models.Model):#Không thay đổi: Máy chấm công
+    _name = 'attendance.device'
+
+    _description = 'Attendance Machine'
+    _inherit = ['mail.thread', 'mail.activity.mixin', 'to.base']
+
+
+    @api.model
+    def _default_get_attendance_device_state_lines(self):#Không thay đổi:
+    state = fields.Selection([
+        ('draft', 'Draft'),
+        ('confirmed', 'Confirmed'),
+        ('cancelled', 'Cancelled')
+    name = fields.Char(string='Name', required=True, help="The name of the attendance machine", tracking=True, translate=True, copy=True, default='/',
+                       readonly=False, states={'confirmed': [('readonly', True)],
+                                               'cancelled': [('readonly', True)]})
+    firmware_version = fields.Char(string='Firmware Version', readonly=True,
+                                   help="The firmware version of the machine which will be filled automatically when you hit the 'Get Machine Info' button.")
+    serialnumber = fields.Char(string='Serial Number', readonly=True,
+                               help="The serial number of the machine which will be filled automatically when you hit the 'Get Machine Info' button.")
+    oem_vendor = fields.Char(string='OEM Vendor', readonly=True,
+                               help="The OEM Vendor of the machine which will be filled automatically when you hit the 'Get Machine Info' button.")
+    platform = fields.Char(string='Platform', readonly=True,
+                               help="The Platform of the machine which will be filled automatically when you hit the 'Get Machine Info' button.")
+    fingerprint_algorithm = fields.Char(string='Fingerprint Algorithm', readonly=True,
+                               help="The Fingerprint Algorithm (aka ZKFPVersion) of the machine which will be filled automatically when you hit the 'Get Machine Info' button.")
+    device_name = fields.Char(string='Machine Name', readonly=True,
+                               help="The model of the machine which will be filled automatically when you hit the 'Get Machine Info' button.")
+    work_code = fields.Char(string='Work Code', readonly=True,
+                               help="The Work Code of the machine which will be filled automatically when you hit the 'Get Machine Info' button.")
+    ip = fields.Char(string='IP / Domain Name', required=True, tracking=True, copy=False, readonly=False, states={'confirmed': [('readonly', True)],
+                                                                                                                  'cancelled': [('readonly', True)]},
+                     help="The accessible IP or Domain Name of the machine to get the machine's attendance data", default='0.0.0.0')
+    port = fields.Integer(string='Port', required=True, default=4370, tracking=True, readonly=False, states={'confirmed': [('readonly', True)],
+                                                                                                             'cancelled': [('readonly', True)]})
+    timeout = fields.Integer(string='Timeout', default=20, required=True, help="Maximum time in seconds to wait for response from the machine", tracking=True,
+                             readonly=False, states={'confirmed': [('readonly', True)],
+                                                     'cancelled': [('readonly', True)]})
+    description = fields.Text(string='Description')
+    user_id = fields.Many2one('res.users', string='Technician', tracking=True, default=lambda self: self.env.user)
+    device_user_ids = fields.One2many('attendance.device.user', 'device_id', string='Machine Users',
+                                      help="List of Users stored in the attendance machine")
+    device_users_count = fields.Integer(string='Users Count', compute='_compute_device_users_count', store=True, tracking=True)
+    mapped_employee_ids = fields.Many2many('hr.employee', 'mapped_device_employee_rel', string='Mapped Employees',
+                                           compute='_compute_employees', store=True,
+                                           help="List of employees that have been mapped with this machine's users")
+    mapped_employees_count = fields.Integer(string='Mapped Employee Count', compute='_compute_mapped_employees_count', store=True, tracking=True)
+    umapped_device_user_ids = fields.One2many('attendance.device.user', 'device_id', string='Unmapped Machine Users',
+                                              domain=[('employee_id', '=', False)],
+                                              help="List of Machine Users that have not been mapped with an employee")
+    unmapped_employee_ids = fields.Many2many('hr.employee', 'device_employee_rel', 'device_id', 'employee_id',
+                                             compute='_compute_employees', store=True, string='Unmapped Employees',
+                                             help="The employees that have not been mapped with any user of this machine")
+    attendance_device_state_line_ids = fields.One2many('attendance.device.state.line', 'device_id', string='State Codes', copy=False,
+                                                       default=_default_get_attendance_device_state_lines,
+                                                       readonly=False, states={'confirmed': [('readonly', True)],
+                                                                               'cancelled': [('readonly', True)]})
+    location_id = fields.Many2one('attendance.device.location', string='Location', tracking=True,
+                                  help="The location where the machine is located", required=True,
+                                  readonly=False, states={'confirmed': [('readonly', True)],
+                                                          'cancelled': [('readonly', True)]})
+    ignore_unknown_code = fields.Boolean(string='Ignore Unknown Code', default=False, tracking=True,
+                                         help="Sometimes you don't want to load attendance data with status "
+                                         "codes those not declared in the table below. In such the case, check this field.",
+                                         readonly=False, states={'confirmed': [('readonly', True)],
+                                                                 'cancelled': [('readonly', True)]})
+    company_id = fields.Many2one('res.company', string='Company', default=lambda self: self.env.company,
+                                 readonly=False, states={'confirmed': [('readonly', True)],
+                                                         'cancelled': [('readonly', True)]})
+    auto_clear_attendance = fields.Boolean(string='Auto Clear Attendance Data', default=False, tracking=True,
+                                            readonly=False, states={'confirmed': [('readonly', True)],
+                                                                    'cancelled': [('readonly', True)]},
+                                            help="Check this to clear all machine attendance data after download into Odoo")
+    auto_clear_attendance_schedule = fields.Selection([
+        ('on_download_complete', 'On Download Completion'),
+        ('time_scheduled', 'Time Scheduled')], string='Auto Clear Schedule', required=True, default='on_download_complete', tracking=True,
+        help="On Download Completion: Delete attendance data as soon as download finished\n"
+        "Time Scheduled: Delete attendance data on the time specified below")
+    auto_clear_attendance_hour = fields.Float(string='Auto Clear At', tracking=True, required=True, default=0.0,
+                                               help="The time (in the attendance machine's timezone) to clear attendance data after download.")
+    auto_clear_attendance_dow = fields.Selection([
+        ('-1', 'Everyday'),
+        ('0', 'Monday'),
+        ('1', 'Tuesday'),
+        ('2', 'Wednesday'),
+        ('3', 'Thursday'),
+        ('4', 'Friday'),
+        ('5', 'Saturday'),
+        ('6', 'Sunday'), ], string='Auto Clear On', default='6', required=True, tracking=True)
+    auto_clear_attendance_error_notif = fields.Boolean(string='Auto Clear Attendance Notif.', default=True,
+                                                        tracking=True,
+                                                        help="Notify upon no safe found to clear attendance data")
+    tz = fields.Selection(_tz_get, string='Time zone', compute='_compute_tz', store=True,
+                          help="The machine's timezone, used to output proper date and time values inside attendance reports.")
+    active = fields.Boolean(string='Active', default=True, tracking=True, readonly=True, states={'draft': [('readonly', False)]})
+    unique_uid = fields.Boolean(string='Unique UID', default=True, required=True, tracking=True,
+                                readonly=False, states={'confirmed': [('readonly', True)],
+                                                        'cancelled': [('readonly', True)]},
+                                help="Some Bad Machines allow uid duplication. In this case, uncheck this field. But it is recommended to change your machine.")
+    last_attendance_download = fields.Datetime(string='Last Sync.', readonly=True,
+                                               help="The last time that the attendance data was downlowed from the machine into Odoo.")
+    map_before_dl = fields.Boolean(string='Map Employee Before Download', default=True,
+                                   help="Always try to map users and employees (if any new found) before downloading attendance data.")
+    create_employee_during_mapping = fields.Boolean(string='Generate Employees During Mapping', default=False,
+                                                    help="If checked, during mapping between Machine's Users and company's employees, unmapped machine"
+                                                    " users will try to create a new employee then map accordingly.")
+    download_error_notification = fields.Boolean(string='Download Error Notification', default=True,
+                                                 readonly=False, states={'confirmed': [('readonly', True)],
+                                                                         'cancelled': [('readonly', True)]},
+                                                 help="Enable this to get notified when data download error occurs.")
+    debug_message = fields.Boolean(string='Debug Message', default=False, help="If checked, debugging messages will be posted in"
+                                   " OpenChatter for debugging purpose")
+    user_attendance_ids = fields.One2many('user.attendance', 'device_id', string='Attendance Data', readonly=True)
+    total_att_records = fields.Integer(string='Attendance Records', compute='_compute_total_attendance_records')
+    finger_template_ids = fields.One2many('finger.template', 'device_id', string='Finger Template', readonly=True)
+    total_finger_template_records = fields.Integer(string='Finger Templates', compute='_compute_total_finger_template_records')
+    protocol = fields.Selection([('udp', 'UDP'), ('tcp', 'TCP')], string='Protocol', required=True, default='tcp',
+                                tracking=True,
+                                help="Some old devices do not support TCP. In such the case, please try on switching to UDP.")
+    omit_ping = fields.Boolean(string='Omit Ping', default=True, help="Omit ping ip address when connecting to machine.",
+                               readonly=False, states={'confirmed': [('readonly', True)],
+                                                       'cancelled': [('readonly', True)]})
+    password = fields.Char(string='Password', readonly=False, states={'confirmed': [('readonly', True)],
+                                                                      'cancelled': [('readonly', True)]},
+                           help="The password to authenticate the machine, if required")
+    unaccent_user_name = fields.Boolean(string='Unaccent User Name', default=True, tracking=True,
+                                        help="Some Machines support Unicode names such as the ZKTeco K50, some others do not."
+                                        " In addition to this, the name field on devices is usually limited at about 24 Latin characters"
+                                        " or less Unicode characters. Unaccent is sometimes a workaround for long Unicode names")
+    max_size_TCP = fields.Selection([('65472', '65472 bytes'),
+                                     ('32768', '32768 bytes'),
+                                     ('16384', '16384 bytes'),
+                                     ('8192', '8192 bytes'),
+                                     ('4096', '4096 bytes'),
+                                     ('2048', '2048 bytes'),
+                                     ('1024', '1024 bytes'),
+                                     ], string='TCP Max-Size', default='65472', required=True,
+                                     help="The default value (65472) works well for almost attendance machines. However, in some rare cases"
+                                     " the error '[Errno 32] Broken pipe' may occur while getting data from devices. In such case, you may try on decreasing this value"
+                                     " to see if it would help.\n"
+                                     "Note: the smaller this value is, the slower data getting will be.")
+    max_size_UDP = fields.Selection([('65472', '65472 bytes'),
+                                     ('32768', '32768 bytes'),
+                                     ('16384', '16384 bytes'),
+                                     ('8192', '8192 bytes'),
+                                     ('4096', '4096 bytes'),
+                                     ('2048', '2048 bytes'),
+                                     ('1024', '1024 bytes'),
+                                     ], string='UDP Max-Size', default='16384', required=True,
+                                     help="The default value (16384) works well for almost attendance machines. However, in some rare cases,"
+                                     " the error 'timed out' may occur while getting data from devices. In such situation, you may try on decreasing this value to see if it would help\n."
+                                     "Note: the smaller this value is, the slower data getting will be.")
+    _sql_constraints = [
+        ('ip_and_port_unique',
+
+         'UNIQUE(ip, port, location_id)',
+
+         "You cannot have more than one machine with the same ip and port of the same location!"),
+
+    ]
+
+    @property
+    def zk(self):
+        """
+        This method return a ZK object.
+        If an object corresponding to the connection param was created
+        and available in self.zk_cache, it will be return. To avoid it, call it with .with_context(no_zk_cache=True)
+        """
+
+    @api.depends('location_id.tz')
+    def _compute_tz(self):
+    def name_get(self):
+        """
+        name_get that supports displaying location name and model as prefix
+        """
+
+    @api.model
+    def name_search(self, name, args=None, operator='ilike', limit=100):
+        """
+        name search that supports searching by tag code
+        """
+
+    @api.depends('device_user_ids', 'device_user_ids.active')
+    def _compute_device_users_count(self):
+    def _compute_total_finger_template_records(self):
+    def _compute_total_attendance_records(self):
+    @api.depends('device_user_ids', 'device_user_ids.active', 'device_user_ids.employee_id', 'device_user_ids.employee_id.active')
+    def _compute_employees(self):
+    @api.depends('mapped_employee_ids')
+    def _compute_mapped_employees_count(self):
+    @api.onchange('unique_uid')
+    def onchange_unique_uid(self):
+    @api.model_create_multi
+    def create(self, vals_list):
+    def write(self, vals):
+    def connect(self):
+        def post_message(email_template):
+    #Không thay đổi
+    def disconnect(self):#Không thay đổi
+    def disableDevice(self):#Không thay đổi
+        """
+        disable (lock) machine, ensure no activity when process run
+        """
+
+    def _restart(self):#Không thay đổi
+    def enableDevice(self):#Không thay đổi
+        """
+        re-enable the connected machine
+        """
+
+    def getFirmwareVersion(self):#Không thay đổi
+        """
+        return the firmware version
+        """
+
+    def getSerialNumber(self):#Không thay đổi
+        """
+        return the serial number
+        """
+
+    def getOEMVendor(self):#Không thay đổi
+        """
+        return the serial number
+        """
+
+    def getFingerprintAlgorithm(self):#Không thay đổi
+        """
+        return the Fingerprint Algorithm
+        """
+
+    def getPlatform(self):#Không thay đổi
+        """
+        return the serial number
+        """
+
+    def getDeviceName(self):#Không thay đổi
+        """
+        return the serial number
+        """
+
+    def getWorkCode(self):#Không thay đổi
+        """
+        return the serial number
+        """
+
+    def restartDevice(self):#Không thay đổi
+        """
+        restart the machine
+        """
+
+    def setUser(self, uid=None, name='', privilege=0, password='', group_id='', user_id='', card=0):#Không thay đổi
+    def delUser(self, uid, user_id):#Không thay đổi
+        """
+        delete specific user by uid
+        """
+
+    def getUser(self):#Không thay đổi
+        """
+        return a Python List of machine users in User(uid, name, privilege, password, group_id, user_id)
+        """
+
+    def upload_finger_templates(self, uid, name, privilege, password, group_id, user_id, fingers):#Không thay đổi
+    def delFingerTemplate(self, uid, fid, user_id):#Không thay đổi
+        """
+        delete finger template by uid and fid
+        """
+
+    def getFingerTemplate(self):#Không thay đổi
+        """
+        return a Python List of fingers template in Finger(uid, fid, valid, template)
+        """
+
+    def get_next_uid(self):#Không thay đổi
+        """
+        return max uid of users on attendance machine
+        """
+
+    def getMachineTime(self):#Không thay đổi
+        """
+        Get naive machine date and time in its local timezone
+        """
+
+    def clearData(self):#Không thay đổi
+        """
+        clear all data (include: user, attendance report, finger database )
+        """
+
+    def getAttendance(self):#Không thay đổi
+    def clearAttendance(self):#Không thay đổi
+        """
+        clear all attendance records from the machine
+        """
+
+    def _download_users_by_uid(self):#Không thay đổi
+        """
+        This method download and update all machine users into model attendance.device.user using uid as key
+        """
+
+    def _download_users_by_user_id(self):#Không thay đổi
+        """
+        This method download and update all machine users into model attendance.device.user using user_id as key
+        NOTE: This method is experimental as it failed on comparing user_id in unicode type from machines (unicode: string) with user_id in unicode string from Odoo (u'string')
+        """
+
+    def action_show_time(self):#Không thay đổi
+        """
+        Show the time on the machine
+        """
+
+    def _user_download(self):#Không thay đổi
+        """
+        This method download and update all machine users into model attendance.device.user
+        """
+
+    def _user_upload(self):#Không thay đổi
+        """
+        This method will
+        1. Download users from machine
+        2. Map the users with emloyee
+        3. Upload users from model attendance.device.user into the machine
+        """
+
+    def _employee_map(self):#Không thay đổi: map nhân viên với máy chấm công
+        """
+        This method will
+        1. Download users from machine
+        2. Map the users with emloyee
+        3. Upload users from model attendance.device.user into the machine
+        """
+    def action_attendance_download(self):#Không thay đổi: tải dữ liệu chấm công từ máy chấm công được gọi từ giao diện
+    def action_fetch_attendance_data(self):#Không thay đổi: tải dữ liệu chấm công từ máy chấm công được gọi từ giao diện
+    def _threaded_fetch_attendance_data(self, wait=False):#không thay đổi
+        def _fetch_attendance_data(devices):
+    @api.model
+    def _cron_download_device_attendance(self):#Không thay đổi: tải dữ liệu chấm công từ máy chấm công bằng hành động định kỳ
+    def _fetch_attendance_data(self):#Thay đổi(đổi convert_time_to_utc thành convert_local_to_utc theo odoo 16): tải dữ liệu chấm công từ máy chấm công được gọi từ hành động định kỳ và action_fetch_attendance_data
+            r.last_attendance_download = fields.Datetime.now()
+    def _finger_template_download(self):#Không thay đổi: tải dữ liệu vân tay từ máy chấm công
+    def is_attendance_clear_safe(self):#Không thay đổi
+        """
+        If the data from machines has not been downloaded into Odoo, this method will return false
+        """
+
+    def _attendance_clear(self):#Không thay đổi
+        """
+        Method to clear all attendance data from the machine
+        """
+
+    def action_check_connection(self):#Không thay đổi: Kiểm tra kết nối máy chấm công
+    def action_device_information(self):#Không thay đổi: Lấy thông tin máy chấm công
+    @api.model
+    def post_message(self, email_template):#Không thay đổi: log note lên chatter
+    def action_view_users(self):#Không thay đổi: xem danh sách người dùng trên máy chấm công
+    def action_view_attendance_data(self):#Không thay đổi: xem danh sách dữ liệu chấm công trên máy chấm công
+    def action_view_mapped_employees(self):#Không thay đổi: xem danh sách nhân viên được map với máy chấm công
+    def action_view_finger_template(self):#Không thay đổi: xem danh sách dữ liệu vân tay trên máy chấm công
+    @api.ondelete(at_uninstall=False)
+    def _unlink_if_draft_state(self):#Không thay đổi: xóa máy chấm công khi đang ở trạng thái draft
+    @api.ondelete(at_uninstall=False)
+    def _unlink_except_not_force_delete(self):#Không thay đổi: xóa máy chấm công khi đang ở trạng thái draft
+    def _prepare_action_confirm(self):
+    def action_user_upload(self):#Không thay đổi: đồng bộ dữ liệu người dùng từ Odoo sang máy chấm công
+    def action_user_download(self):#Không thay đổi: đồng bộ dữ liệu người dùng từ máy chấm công sang Odoo
+    def action_employee_map(self):#Không thay đổi: đồng bộ dữ liệu nhân viên từ máy chấm công sang Odoo
+    def action_finger_template_download(self):#Không thay đổi: đồng bộ dữ liệu vân tay từ máy chấm công sang Odoo
+    def action_clear_attendance_data(self):#Không thay đổi: xóa dữ liệu chấm công trên máy chấm công
+    def action_restart(self):#Không thay đổi: khởi động lại máy chấm công
+class AttendanceDeviceStateLine(models.Model):#Không thay đổi: model trung gian giữa máy chấm công và trạng thái chấm công
+    _name = 'attendance.device.state.line'
+
+    _description = 'Attendance Machine State'
+
+    attendance_state_id = fields.Many2one('attendance.state', string='State Code', required=True, index=True,)
+    device_id = fields.Many2one('attendance.device', string='Machine', required=True, ondelete='cascade', index=True, copy=False)
+    code = fields.Integer(string='Code Number', related='attendance_state_id.code', store=True, readonly=True)
+    type = fields.Selection(related='attendance_state_id.type', store=True)
+    activity_id = fields.Many2one('attendance.activity', related='attendance_state_id.activity_id',
+                                  help="Attendance activity, e.g. Normal Working, Overtime, etc", readonly=True, store=True, index=True)
+    _sql_constraints = [
+        ('attendance_state_id_device_id_unique',
+
+         'UNIQUE(attendance_state_id, device_id)',
+
+         "The Code must be unique per Machine"),
+
+    ]
+
+
+FILE: to_attendance_device/models/attendance_device_user.py
+
+class AttendanceDeviceUser(models.Model):#Không thay đổi: model người dùng trên máy chấm công
+    _name = 'attendance.device.user'
+
+    _inherit = 'mail.thread'
+
+    _description = 'Attendance Machine User'
+
+    name = fields.Char(string='Name', help="The name of the employee stored in the machine", required=True, tracking=True)
+    device_id = fields.Many2one('attendance.device', string='Attendance Machine', required=True, ondelete='cascade', tracking=True)
+    uid = fields.Integer(string='UID', help="The ID (technical field) of the user/employee in the machine storage", readonly=True, tracking=True)
+    user_id = fields.Char(string='ID Number', size=8, help="The ID Number of the user/employee in the machine storage", required=True, tracking=True)
+    password = fields.Char(string='Password', tracking=True, help="Used when checkin/checkout on the attendance machines by password")
+    group_id = fields.Integer(string='Group', default=0, tracking=True, help="Group ID of the user on the attendance machines")
+    privilege = fields.Integer(string='Privilege', tracking=True, help="Privilege of the user on the attendance machines")
+    del_user = fields.Boolean(string='Delete In Machine?', default=False,
+                              tracking=True,
+                              help="If checked, the user on the machine will be deleted upon deleting this record in Odoo")
+    employee_id = fields.Many2one('hr.employee', string='Employee', help="The Employee who is corresponding to this machine user",
+                                  ondelete='set null', tracking=True)
+    attendance_ids = fields.One2many('user.attendance', 'user_id', string='Attendance Data', readonly=True)
+    attendance_id = fields.Many2one('user.attendance', string='Current Attendance', store=True,
+                                    compute='_compute_current_attendance',
+                                    help="The technical field to store current attendance recorded of the user.")
+    active = fields.Boolean(string='Active', compute='_compute_get_active', default=True, tracking=True, store=True, readonly=False)
+    finger_templates_ids = fields.One2many('finger.template', 'device_user_id', string='Finger Template', readonly=True)
+    total_finger_template_records = fields.Integer(string='Finger Templates', compute='_compute_total_finger_template_records')
+    not_in_device = fields.Boolean(string='Not in machine', readonly=True, help="Technical field to indicate this user is not available in machine storage."
+                                 " It could be deleted outside Odoo.")
+    _sql_constraints = [
+        ('employee_id_device_id_unique',
+
+         'UNIQUE(employee_id, device_id)',
+
+         "The Employee must be unique per machine"),
+
+    ]
+
+    def _compute_total_finger_template_records(self):#Không thay đổi: tính tổng số vân tay của người dùng trên máy chấm công
+    @api.depends('device_id', 'device_id.active', 'employee_id', 'employee_id.active')
+    def _compute_get_active(self):
+    @api.depends('attendance_ids')
+    def _compute_current_attendance(self):#Không thay đổi: tính toán dữ liệu chấm công hiện tại của người dùng trên máy chấm công
+    @api.constrains('user_id', 'device_id')
+    def constrains_user_id_device_id(self):
+    def unlink(self):
+    def setUser(self):#không thay đổi: tạo người dùng trên máy chấm công
+    def upload_finger_templates(self):#không thay đổi: tải lên vân tay trên máy chấm công
+    def action_upload_finger_templates(self):#không thay đổi: tải lên vân tay trên máy chấm công
+    @api.model_create_multi
+    def create(self, vals_list):
+    def _prepare_employee_data(self, barcode=None):
+    def generate_employees(self):
+        """
+        This method will generate new employees from the machine user data.
+        """
+
+    def smart_find_employee(self):#không thay đổi: tìm kiếm nhân viên trên máy chấm công
+    def action_view_finger_template(self):#không thay đổi: xem vân tay trên máy chấm công
+    def write(self, vals):
+    def _message_get_suggested_recipients(self):
+        """
+        Override this method of mail.thread model to avoid exception, because it has a special behaviours of 'user_id' field
+        Code raise exception: 'obj.user_id.partner_id' (user_id in attendance.device.user model is string, not relational field)
+        """
+
+
+FILE: to_attendance_device/models/attendance_activity.py
+
+class AttendanceActivity(models.Model):#Không thay đổi: model hoạt động chấm công(vd: làm việc bình thường,làm việc tăng ca)
+    _name = 'attendance.activity'
+
+    _description = 'Attendance Activity'
+
+    name = fields.Char(string='Name', required=True, translate=True,
+                              help="The name of the attendance activity. E.g. Normal Working, Overtime, etc")
+    attendance_status_ids = fields.One2many('attendance.state', 'activity_id', string='Attendance Status',
+                                            help="The check-in and check-out statuses of this activity")
+    status_count = fields.Integer(string='Status Count', compute='_compute_status_count')
+    _sql_constraints = [
+        ('unique_name',
+
+         'UNIQUE(name)',
+
+         "The Name of the attendance activity must be unique!"),
+
+    ]
+
+    @api.depends('attendance_status_ids')
+    def _compute_status_count(self):
+    def getAttendance(self, device_id=None, user_id=None):#không thay đổi: lấy dữ liệu chấm công trên máy chấm công
+
+FILE: to_attendance_device/models/finger_template.py
+
+class FingerTemplate(models.Model):#Không thay đổi: model vân tay trên máy chấm công
+    _name = 'finger.template'
+
+    _description = 'Fingers Template'
+
+    device_user_id = fields.Many2one('attendance.device.user', string='Machine User',
+                                     help="The device user who is owner of this finger template")
+    employee_id = fields.Many2one('hr.employee', string='Employee',
+                                  help="The employee who is owner of this finger template", ondelete='cascade',
+                                  compute='_compute_employee_id', store=True, readonly=False)
+    uid = fields.Integer(string='UId', help="The ID (technical field) of the user/employee in the machine storage",
+                         related='device_user_id.uid', store=True)
+    device_id = fields.Many2one('attendance.device', string='Attendance Machine',
+                                related='device_user_id.device_id', store=True)
+    fid = fields.Integer(string='Finger Id', help="The ID of this finger template in the attendance machine.")
+    valid = fields.Integer(string='Valid')
+    template = fields.Binary(string='Template', attachment=False)
+    active = fields.Boolean(string='Active', compute='_compute_active', default=True, store=True, readonly=False)
+    @api.depends('device_id', 'device_id.active', 'employee_id', 'employee_id.active')
+    def _compute_active(self):
+    @api.depends('device_user_id', 'device_user_id.employee_id')
+    def _compute_employee_id(self):
+    def upload_to_device(self, devices=None):#không thay đổi: tải lên vân tay trên máy chấm công
+
+FILE: to_attendance_device/models/hr_attendance.py
+
+class HrAttendance(models.Model):#Không thay đổi: model chấm công trên hệ thống 
+    _inherit = 'hr.attendance'
+
+
+    checkin_device_id = fields.Many2one('attendance.device', string='Checkin Device', readonly=True, index=True,
+                                        help="The device with which user took check in action")
+    checkout_device_id = fields.Many2one('attendance.device', string='Checkout Device', readonly=True, index=True,
+                                         help="The device with which user took check out action")
+    activity_id = fields.Many2one('attendance.activity', string='Attendance Activity',
+                                  help="This field is to group attendance into multiple Activity (e.g. Overtime, Normal Working, etc)")
+    @api.constrains('check_in', 'check_out', 'employee_id')
+    def _check_validity(self):
+        """ If sync from device, skip
+        """
+
+
+FILE: to_attendance_device/models/hr_employee.py
+
+class HrEmployee(models.Model):#Không thay đổi: model nhân viên trên hệ thống 
+    _inherit = 'hr.employee'
+
+
+    unamapped_attendance_device_ids = fields.Many2many('attendance.device', 'device_employee_rel', 'employee_id', 'device_id',
+                                                       string='Unmapped Machines',
+                                                       help="The devices that have not store this employee as an user yet."
+                                                       " When you map employee with a user of a device, the device will disappear from this list.")
+    created_from_attendance_device = fields.Boolean(string='Created from Device', readonly=True, groups="hr.group_hr_user",
+                                                    help="This field indicates that the employee was created from the data of an attendance machine")
+    finger_templates_ids = fields.One2many('finger.template', 'employee_id', string='Finger Template', readonly=True)
+    total_finger_template_records = fields.Integer(string='Finger Templates', compute='_compute_total_finger_template_records')
+    device_user_ids = fields.One2many('attendance.device.user', 'employee_id', string='Mapped Device Users')
+    def _compute_total_finger_template_records(self):
+    @api.model_create_multi
+    def create(self, vals_list):
+    def write(self, vals):
+    def _get_unaccent_name(self):#Không thay đổi: lấy tên không dấu
+    def _prepare_device_user_data(self, device):#Không thay đổi: chuẩn bị dữ liệu cho user trên máy chấm công
+    def create_device_user_if_not_exist(self, device):#Không thay đổi: tạo user trên máy chấm công nếu chưa tồn tại
+    def upload_to_attendance_device(self, device):#Không thay đổi: tải dữ liệu nhân viên lên máy chấm công
+    def action_view_finger_template(self):#Không thay đổi: xem dữ liệu vân tay
+
+FILE: to_attendance_device/models/__init__.py
+
+
+FILE: to_attendance_device/models/attendance_device_location.py
+
+class AttendanceDeviceLocation(models.Model):#Không thay đổi: model vị trí máy chấm công
+    _name = 'attendance.device.location'
+
+    _description = 'Machine Position'
+
+    name = fields.Char(string='Name', required=True, translate=True,
+                       help="The position where the machine is equipped. E.g. Front Door, Back Door, etc")
+    hr_work_location_id = fields.Many2one('hr.work.location', string='Work Location', required=True,
+                                          help="The work location to where this machine position belongs.")
+    tz = fields.Selection(_tz_get, string='Time zone', default=lambda self: self.env.context.get('tz') or self.env.user.tz,
+                          help="The device's timezone, used to output proper date and time values "
+                               "inside attendance reports. It is important to set a value for this field.")
+
+#Phần code migration và thư viện pyzk không thay đổi
+FILE: to_attendance_device/migrations/14.0.1.1.2/post-migration.py
+
+def replace_partner_email_template(env):
+def migrate(cr, version):
+
+FILE: to_attendance_device/migrations/10.0.1.0.0/post-migration.py
+
+def migrate(cr, version):
+    """
+    We added protocol switching between UDP and TCP and set TCP as the default value.
+    However, existing users who are on UDP may not want this change. This SQL will try
+    keep UDP for the existing users.
+    """
+
+
+FILE: to_attendance_device/migrations/10.0.1.1.1/post-migration.py
+
+def migrate(cr, version):
+
+FILE: to_attendance_device/migrations/15.0.1.1.4/post-migration.py
+
+def _delete_hr_attendance_records(env):
+def migrate(cr, version):
+
+FILE: to_attendance_device/migrations/14.0.1.1.3/post-migration.py
+
+def migrate(cr, version):
+
+FILE: to_attendance_device/migrations/12.0.1.1.1/post-migration.py
+
+def migrate(cr, version):
+
+FILE: to_attendance_device/migrations/11.0.1.1.1/post-migration.py
+
+def migrate(cr, version):
+
+FILE: to_attendance_device/pyzk/zk/const.py
+
+
+FILE: to_attendance_device/pyzk/zk/base.py
+
+def safe_cast(val, to_type, default=None):
+def make_commkey(key, session_id, ticks=50):
+    """
+    take a password and session_id and scramble them to send to the machine.
+    copied from commpro.c - MakeKey
+    """
+
+class ZK_helper(object):
+
+    def __init__(self, ip, port=4370):
+        """
+        Construct a new 'ZK_helper' object.
+        """
+
+    def test_ping(self):
+        """
+        Returns True if host responds to a ping request
+
+        :return: bool
+        """
+
+    def test_tcp(self):
+        """
+        test TCP connection
+        """
+
+    def test_udp(self):
+        """
+        test UDP connection
+        """
+
+class ZK(object):
+
+    def __init__(self, ip, port=4370, timeout=60, password=0, force_udp=False, ommit_ping=False, verbose=False, encoding='UTF-8', max_size_TCP=65472, max_size_UDP=16384):
+        """
+        Construct a new 'ZK' object.
+
+        :param ip: machine's IP address
+        :param port: machine's port
+        :param timeout: timeout number
+        :param password: passint
+        :param force_udp: use UDP connection
+        :param omit_ping: check ip using ping before connect
+        :param verbose: showing log while run the commands
+        :param encoding: user encoding
+        """
+
+    def __nonzero__(self):
+        """
+        for boolean test
+        """
+
+    def __create_socket(self):
+    def __create_tcp_top(self, packet):
+        """
+        witch the complete packet set top header
+        """
+
+    def __create_header(self, command, command_string, session_id, reply_id):
+        """
+        Puts a the parts that make up a packet together and packs them into a byte string
+        """
+
+    def __create_checksum(self, p):
+        """
+        Calculates the checksum of the packet to be sent to the time clock
+        Copied from zkemsdk.c
+        """
+
+    def __test_tcp_top(self, packet):
+        """
+        return size!
+        """
+
+    def __send_command(self, command, command_string=b'', response_size=8):
+        """
+        send command to the terminal
+        """
+
+    def __ack_ok(self):
+        """
+        event ack ok
+        """
+
+    def __get_data_size(self):
+        """
+        Checks a returned packet to see if it returned CMD_PREPARE_DATA,
+        indicating that data packets are to be sent
+
+        Returns the amount of bytes that are going to be sent
+        """
+
+    def __reverse_hex(self, hex):
+    def __decode_time(self, t):
+        """
+        Decode a timestamp retrieved from the timeclock
+
+        copied from zkemsdk.c - DecodeTime
+        """
+
+    def __decode_timehex(self, timehex):
+        """
+        timehex string of six bytes
+        """
+
+    def __encode_time(self, t):
+        """
+        Encode a timestamp so that it can be read on the timeclock
+        """
+
+    def connect(self):
+        """
+        connect to the device
+
+        :return: bool
+        """
+
+    def disconnect(self):
+        """
+        diconnect from the connected device
+
+        :return: bool
+        """
+
+    def enable_device(self):
+        """
+        re-enable the connected device and allow user activity in device again
+
+        :return: bool
+        """
+
+    def disable_device(self):
+        """
+        disable (lock) device, to ensure no user activity in device while some process run
+
+        :return: bool
+        """
+
+    def get_firmware_version(self):
+        """
+        :return: the firmware version
+        """
+
+    def get_serialnumber(self):
+        """
+        :return: the serial number
+        """
+
+    def get_oem_vendor(self):
+        """
+        :return: the OEM Vendor of the device
+        """
+
+    def get_platform(self):
+        """
+        :return: the platform name
+        """
+
+    def get_mac(self):
+        """
+        :return: the machine's mac address
+        """
+
+    def get_device_name(self):
+        """
+        return the device name
+
+        :return: str
+        """
+
+    def get_workcode(self):
+        """
+        return the work code
+        """
+
+    def get_face_version(self):
+        """
+        :return: the face version
+        """
+
+    def get_fp_version(self):
+        """
+        :return: the fingerprint version
+        """
+
+    def _clear_error(self, command_string=b''):
+        """
+        clear ACK_error
+        """
+
+    def get_extend_fmt(self):
+        """
+        determine extend fmt
+        """
+
+    def get_user_extend_fmt(self):
+        """
+        determine user extend fmt
+        """
+
+    def get_face_fun_on(self):
+        """
+        determine extend fmt
+        """
+
+    def get_compat_old_firmware(self):
+        """
+        determine old firmware
+        """
+
+    def get_network_params(self):
+        """
+        get network params
+        """
+
+    def get_pin_width(self):
+        """
+        :return: the PIN width
+        """
+
+    def free_data(self):
+        """
+        clear buffer
+
+        :return: bool
+        """
+
+    def read_sizes(self):
+        """
+        read the memory ussage
+        """
+
+                self.users = fields[4]
+                self.fingers = fields[6]
+                self.records = fields[8]
+                self.dummy = fields[10]  # ???
+                self.cards = fields[12]
+                self.fingers_cap = fields[14]
+                self.users_cap = fields[15]
+                self.rec_cap = fields[16]
+                self.fingers_av = fields[17]
+                self.users_av = fields[18]
+                self.rec_av = fields[19]
+                self.__data = self.__data[80:]
+            if len(self.__data) >= 12:  # face info
+                fields = unpack('3i', self.__data[:12])  # dirty hack! we need more information
+                self.faces = fields[0]
+                self.faces_cap = fields[2]
+            return True
+        else:
+            raise ZKErrorResponse("can't read sizes")
+    def unlock(self, time=3):
+        """
+        unlock the door\n
+        thanks to https://github.com/SoftwareHouseMerida/pyzk/
+        :param time: define delay in seconds
+        :return: bool
+        """
+
+    def get_lock_state(self):
+        """
+        :return: boolean
+        thanks to https://github.com/icarome/pyzk/
+        """
+
+    def __str__(self):
+        """
+        for debug
+        """
+
+    def restart(self):
+        """
+        restart the device
+
+        :return: bool
+        """
+
+    def write_lcd(self, line_number, text):
+        """
+        write text to LCD
+        :param line_number: line number
+        :param text: text to write
+        """
+
+    def clear_lcd(self):
+        """
+        clear LCD
+        """
+
+    def get_time(self):
+        """
+        :return: the machine's time
+        """
+
+    def set_time(self, timestamp):
+        """
+        set Device time (pass datetime object)
+
+        :param timestamp: python datetime object
+        """
+
+    def poweroff(self):
+        """
+        shutdown the machine
+        """
+
+    def refresh_data(self):
+    def test_voice(self, index=0):
+        """
+        play test voice:\n
+         0 Thank You\n
+         1 Incorrect Password\n
+         2 Access Denied\n
+         3 Invalid ID\n
+         4 Please try again\n
+         5 Dupicate ID\n
+         6 The clock is flow\n
+         7 The clock is full\n
+         8 Duplicate finger\n
+         9 Duplicated punch\n
+         10 Beep kuko\n
+         11 Beep siren\n
+         12 -\n
+         13 Beep bell\n
+         14 -\n
+         15 -\n
+         16 -\n
+         17 -\n
+         18 Windows(R) opening sound\n
+         19 -\n
+         20 Fingerprint not emolt\n
+         21 Password not emolt\n
+         22 Badges not emolt\n
+         23 Face not emolt\n
+         24 Beep standard\n
+         25 -\n
+         26 -\n
+         27 -\n
+         28 -\n
+         29 -\n
+         30 Invalid user\n
+         31 Invalid time period\n
+         32 Invalid combination\n
+         33 Illegal Access\n
+         34 Disk space full\n
+         35 Duplicate fingerprint\n
+         36 Fingerprint not registered\n
+         37 -\n
+         38 -\n
+         39 -\n
+         40 -\n
+         41 -\n
+         42 -\n
+         43 -\n
+         43 -\n
+         45 -\n
+         46 -\n
+         47 -\n
+         48 -\n
+         49 -\n
+         50 -\n
+         51 Focus eyes on the green box\n
+         52 -\n
+         53 -\n
+         54 -\n
+         55 -\n
+
+        :param index: int sound index
+        :return: bool
+        """
+
+    def set_user(self, uid=None, name='', privilege=0, password='', group_id='', user_id='', card=0):
+        """
+        create or update user by uid
+        :param name: name ot the user
+        :param privilege: check the const.py for reference
+        :param password: int password
+        :param group_id: group ID
+        :param user_id: your own user ID
+        :param card: card
+        :return: bool
+        """
+
+        # TODO: check what happens if name is missing...
+        response_size = 1024  # TODO check response?
+    def get_next_uid(self):
+        """
+        This method will get the max uid either from the device
+        """
+
+    def save_user_template(self, user, fingers=[]):
+        """
+        save user and template
+
+        :param user: user
+        :param fingers: list of finger. (The maximum index 0-9)
+        """
+
+    def _send_with_buffer(self, buffer):
+    def __send_chunk(self, command_string):
+    def delete_user_template(self, uid=0, temp_id=0, user_id=''):
+        """
+        Delete specific template
+
+        :param uid: user ID that are generated from device
+        :param user_id: your own user ID
+        :return: bool
+        """
+
+    def delete_user(self, uid=0, user_id=''):
+        """
+        delete specific user by uid or user_id
+
+        :param uid: user ID that are generated from device
+        :param user_id: your own user ID
+        :return: bool
+        """
+
+    def get_user_template(self, uid='', temp_id=0, user_id=''):
+        """
+        :param uid: user ID that are generated from device
+        :param user_id: your own user ID
+        :return: list Finger object of the selected user
+        """
+
+    def get_templates(self):
+        """
+        :return: list of Finger object
+        """
+
+    def get_users(self):
+        """
+        :return: list of User object
+        """
+
+                # TODO: check card value and find in ver8
+    def cancel_capture(self):
+        """
+        cancel capturing finger
+
+        :return: bool
+        """
+
+    def verify_user(self):
+        """
+        start verify finger mode (after capture)
+
+        :return: bool
+        """
+
+    def reg_event(self, flags):
+        """
+        reg events
+        """
+
+    def set_sdk_build_1(self):
+    def enroll_user(self, uid=0, temp_id=0, user_id=''):
+        """
+        start enroll user
+
+        :param uid: uid
+        :param temp_id: template id
+        :param user_id: user ID
+        :return: bool
+        """
+
+        self.reg_event(0)  # TODO: test
+    def live_capture(self, new_timeout=10):
+        """
+        try live capture of events
+        """
+
+    def clear_data(self):
+        """
+        clear all data (included: user, attendance report, finger database)
+        :return: bool
+        """
+
+    def __recieve_tcp_data(self, data_recv, size):
+        """ data_recv, raw tcp packet
+         must analyze tcp_length
+
+         must return data, broken
+         """
+
+    def __recieve_raw_data(self, size):
+        """ partial data ? """
+
+    def __recieve_chunk(self):
+        """ recieve a chunk """
+
+                    data_recv += self.__sock.recv(16 - len(data_recv))  # TODO: CHECK HERE_!
+    def __read_chunk(self, start, size):
+        """
+        read a chunk from buffer
+        """
+
+    def read_with_buffer(self, command, fct=0 , ext=0):
+        """
+        Test read info with buffered command (ZK6: 1503)
+        """
+
+    def get_attendance(self):
+        """
+        return attendance record
+
+        :return: List of Attendance object
+        """
+
+    def clear_attendance(self):
+        """
+        clear all attendance record
+
+        :return: bool
+        """
+
+
+FILE: to_attendance_device/pyzk/zk/attendance.py
+
+class Attendance(object):
+    def __init__(self, user_id, timestamp, status, punch=0, uid=0):
+
+    def __str__(self):
+    def __repr__(self):
+
+FILE: to_attendance_device/pyzk/zk/exception.py
+
+class ZKError(Exception):
+
+class ZKErrorConnection(ZKError):
+
+class ZKErrorResponse(ZKError):
+
+class ZKNetworkError(ZKError):
+
+class ZKConnectionUnauthorized(ZKError):
+
+
+FILE: to_attendance_device/pyzk/zk/user.py
+
+class User(object):
+
+    def __init__(self, uid, name, privilege, password='', group_id='', user_id='', card=0):
+    @staticmethod
+    def json_unpack(json):
+    def repack29(self):  # with 02 for zk6 (size 29)
+    def repack73(self):  # with 02 for zk8 (size73)
+    def __str__(self):
+    def __repr__(self):
+
+FILE: to_attendance_device/pyzk/zk/__init__.py
+
+
+FILE: to_attendance_device/pyzk/zk/finger.py
+
+class Finger(object):
+
+    def __init__(self, uid, fid, valid, template):
+    def repack(self):  # full
+    def repack_only(self):  # only template
+    @staticmethod
+    def json_unpack(json):
+    def json_pack(self):  # packs for json
+    def __eq__(self, other):
+    def __str__(self):
+    def __repr__(self):
+    def dump(self):
+
+FILE: to_attendance_device/pyzk/docs/conf.py
+

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+	<data noupdate="1">
+		<record id="attendance_activity_normal" model="attendance.activity">
+			<field name="name">Normal Attendance</field>
+		</record>
+		<record id="attendance_activity_overtime" model="attendance.activity">
+			<field name="name">Overtime</field>
+		</record>
+		<record id="attendance_activity_break" model="attendance.activity">
+			<field name="name">Break</field>
+		</record>
+		<!-- Whenever user communicate with attendance machine but no punch state like 'check in' or 'check out',etc the code for that attendance record always is 255 on the machine -->
+		<!-- So we create a activity here and later create a code 255 for this activity-->
+		<record id="attendance_activity_unknown_punch_state" model="attendance.activity">
+			<field name="name">Unknown Punch State</field>
+		</record>
+	</data>
+
+	<data noupdate="1">
+		<!-- Normal Attendance -->
+		<record id="attendance_device_state_code_0" model="attendance.state">
+			<field name="name">Check-in</field>
+			<field name="code" eval="0" />
+			<field name="activity_id" ref="attendance_activity_normal" />
+			<field name="type">checkin</field>
+		</record>
+		<record id="attendance_device_state_code_1" model="attendance.state">
+			<field name="name">Check-out</field>
+			<field name="code" eval="1" />
+			<field name="activity_id" ref="attendance_activity_normal" />
+			<field name="type">checkout</field>
+		</record>
+
+		<!-- Overtime Attendance -->
+		<record id="attendance_device_state_code_4" model="attendance.state">
+			<field name="name">Check-in</field>
+			<field name="code" eval="4" />
+			<field name="activity_id" ref="attendance_activity_overtime" />
+			<field name="type">checkin</field>
+		</record>
+		<record id="attendance_device_state_code_5" model="attendance.state">
+			<field name="name">Check-out</field>
+			<field name="code" eval="5" />
+			<field name="activity_id" ref="attendance_activity_overtime" />
+			<field name="type">checkout</field>
+		</record>
+
+		<!-- Break Attendance -->
+		<record id="attendance_device_state_code_2" model="attendance.state">
+			<field name="name">Check-in</field>
+			<field name="code" eval="2" />
+			<field name="activity_id" ref="attendance_activity_break" />
+			<field name="type">checkin</field>
+		</record>
+		<record id="attendance_device_state_code_3" model="attendance.state">
+			<field name="name">Check-out</field>
+			<field name="code" eval="3" />
+			<field name="activity_id" ref="attendance_activity_break" />
+			<field name="type">checkout</field>
+		</record>
+
+		<!-- UNKNOWN PUNCH STATE (always have code 255) -->
+		<record id="attendance_device_state_code_255" model="attendance.state">
+			<field name="name">Unknown Punch State (this usually happen when you check-in or out with no punch state specified)</field>
+			<field name="code" eval="255" />
+			<field name="activity_id" ref="attendance_activity_unknown_punch_state" />
+			<field name="type">checkin</field>
+		</record>
+	</data>
+</odoo>

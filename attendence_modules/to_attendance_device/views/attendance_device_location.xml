@@ -1,0 +1,27 @@
+<odoo>
+	<record id="attendance_device_location_view_tree" model="ir.ui.view">
+		<field name="name">attendance.device.location.tree</field>
+		<field name="model">attendance.device.location</field>
+		<field name="arch" type="xml">
+			<list string="Attendance device location" editable="bottom" sample="1">
+				<field name="name" />
+				<field name="hr_work_location_id" options="{'no_quick_create': True}" />
+				<field name="tz" />
+			</list>
+		</field>
+	</record>
+
+	<record model="ir.actions.act_window" id="attendance_device_location_tree_action">
+		<field name="name">Attendance Device Location</field>
+		<field name="res_model">attendance.device.location</field>
+		<field name="view_mode">list,form</field>
+		<field name="help" type="html">
+			<p class="oe_view_nocontent_create">Create the first attendance device location
+			</p>
+		</field>
+	</record>
+
+	<menuitem id="attendance_location_menu" name="Attendance Location"
+		parent="attendace_device_menu" sequence="13"
+		action="attendance_device_location_tree_action" groups="hr_attendance.group_hr_attendance_manager" />
+</odoo>

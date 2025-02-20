@@ -26,9 +26,11 @@ First-Level Approval (Verified): Once verified, the system assigns the request t
 
 Second-Level Approval (Approved): The final approval step changes the asset status to Approved and marks previous approval activities as completed.
 
-##### Security Group Validation: Before assigning an approval task, the system ensures that at least one user is assigned to the respective security group. If not, it raises an error.
+##### Security Group Validation: 
+Before assigning an approval task, the system ensures that at least one user is assigned to the respective security group. If not, it raises an error.
 
-##### Automated Activities: At each step, a mail activity is created for the assigned users, prompting them to take action on the asset approval.
+##### Automated Activities: 
+At each step, a mail activity is created for the assigned users, prompting them to take action on the asset approval.
 
 
 

@@ -1,0 +1,7 @@
+<odoo>
+    <data>
+        <record model="res.groups" id="inventory_access_rights">
+            <field name="name">Hide/Show Inventory Valuation Cost</field>
+        </record>
+    </data>
+</odoo>

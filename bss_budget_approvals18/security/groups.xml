@@ -1,0 +1,17 @@
+<odoo>
+    <data>
+        <record model="ir.module.category" id="bss_budget_approval_groups_root">
+            <field name="name">Budget Two Level Approvals</field>
+            <field name="description">Budget Approval Security</field>
+        </record>
+
+        <record model="res.groups" id="budget_approval_verify">
+            <field name="name">1st Approval (Verified)</field>
+            <field name="category_id" ref="bss_budget_approval_groups_root"/>
+        </record>
+        <record model="res.groups" id="budget_approval_approve">
+            <field name="name">2nd Approval (Approved)</field>
+            <field name="category_id" ref="bss_budget_approval_groups_root"/>
+        </record>
+    </data>
+</odoo>

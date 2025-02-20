@@ -1,0 +1,78 @@
+<odoo>
+    <data>
+        <record id="stock_valuation_layer_tree_inherit" model="ir.ui.view">
+            <field name="name">stock.valuation.layer.tree.inherit</field>
+            <field name="model">stock.valuation.layer</field>
+            <field name="inherit_id" ref="stock_account.stock_valuation_layer_tree"/>
+            <field name="arch" type="xml">
+
+                <xpath expr="//field[@name='unit_cost']" position="attributes">
+                    <attribute name="groups">bss_inventory_access18.inventory_access_rights</attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='value']" position="attributes">
+                    <attribute name="groups">bss_inventory_access18.inventory_access_rights</attribute>
+                </xpath>
+                <xpath expr="//field[@name='remaining_value']" position="attributes">
+                    <attribute name="groups">bss_inventory_access18.inventory_access_rights</attribute>
+                </xpath>
+
+
+            </field>
+        </record>
+
+
+        <record id="product_stock_tree_inherit_view" model="ir.ui.view">
+            <field name="name">product.product.tree.inherit</field>
+            <field name="model">product.product</field>
+            <field name="inherit_id" ref="stock.product_product_stock_tree"/>
+            <field name="arch" type="xml">
+
+                <xpath expr="//field[@name='avg_cost']" position="attributes">
+                    <attribute name="groups">bss_inventory_access18.inventory_access_rights</attribute>
+                </xpath>
+
+                <xpath expr="//field[@name='total_value']" position="attributes">
+                    <attribute name="groups">bss_inventory_access18.inventory_access_rights</attribute>
+                </xpath>
+
+
+            </field>
+        </record>
+
+
+        <record id="stock_quant_tree_inherit_view" model="ir.ui.view">
+            <field name="name">stock.quant.tree.inherit</field>
+            <field name="model">stock.quant</field>
+            <field name="inherit_id" ref="stock.view_stock_quant_tree_editable"/>
+            <field name="arch" type="xml">
+
+                <xpath expr="//field[@name='value']" position="attributes">
+                    <attribute name="groups">bss_inventory_access18.inventory_access_rights</attribute>
+                </xpath>
+
+            </field>
+        </record>
+
+
+<!--        &lt;!&ndash;        Pivot views visibility based on approvals       &ndash;&gt;-->
+<!--        &lt;!&ndash;        <record id="stock.view_stock_quant_pivot" model="ir.ui.view">&ndash;&gt;-->
+<!--        &lt;!&ndash;            <field name="groups_id" eval="[(6, 0, [ref('bss_inventory_access18.inventory_access_rights')])]"/>&ndash;&gt;-->
+<!--        &lt;!&ndash;        </record>&ndash;&gt;-->
+<!--        <record id="view_stock_quant_pivot_inherit" model="ir.ui.view">-->
+<!--            <field name="name">stock.quant.pivot</field>-->
+<!--            <field name="model">stock.quant</field>-->
+<!--            <field name="inherit_id" ref="stock.view_stock_quant_pivot"/>-->
+<!--            <field name="arch" type="xml">-->
+<!--                &lt;!&ndash; You can leave this block empty if you don't need to modify the content &ndash;&gt;-->
+<!--                <xpath expr="." position="attributes">-->
+<!--                    <attribute name="groups">[(6, 0, [ref('bss_inventory_access18.inventory_access_rights')])]-->
+<!--                    </attribute>-->
+<!--                </xpath>-->
+<!--            </field>-->
+<!--        </record>-->
+    </data>
+</odoo>
+
+
+

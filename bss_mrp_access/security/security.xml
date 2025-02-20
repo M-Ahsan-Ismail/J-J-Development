@@ -1,0 +1,7 @@
+<odoo>
+    <data>
+        <record model="res.groups" id="group_mrp_cost">
+            <field name="name">Hide/Show MRP Cost</field>
+        </record>
+    </data>
+</odoo>

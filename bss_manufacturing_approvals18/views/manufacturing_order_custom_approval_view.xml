@@ -1,0 +1,84 @@
+<odoo>
+    <data>
+        <record id="mrp_production_form_inherit" model="ir.ui.view">
+            <field name="name">mrp.production.form</field>
+            <field name="model">mrp.production</field>
+            <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
+            <field name="priority" eval="8"/>
+            <field name="arch" type="xml">
+
+                <xpath expr="//field[@name='date_start']" position="after">
+                    <field name="state" readonly="0" invisible="0"/>
+                </xpath>
+
+                <xpath expr="//header" position="replace">
+                    <header>
+                        <field name="show_lock" invisible="1"/>
+                        <field name="show_produce" invisible="1"/>
+                        <field name="show_produce_all" invisible="1"/>
+
+
+                        <button name="submit_for_approval" type="object" invisible="state not in ['confirmed']"
+                                string="Submit For Approval"
+                                class="oe_highlight"/>
+
+
+                        <button name="button_manager_approval" type="object"
+                                invisible="state not in ['submit_for_approval']"
+                                string="Verified"
+                                class="oe_highlight"
+                                groups="bss_manufacturing_approvals18.manufacturing_approval_level1"/>
+
+                        <button name="button_ceo_approved" type="object" invisible="state not in ['manager_approval']"
+                                string="Approved"
+                                class="oe_highlight"
+                                groups="bss_manufacturing_approvals18.manufacturing_approval_level2"/>
+
+
+                        <button name="button_mark_done" invisible="not move_raw_ids or not show_produce"
+                                string="Produce" type="object" class="oe_highlight" data-hotkey="g"/>
+
+                        <!--                        Here::-->
+                        <button name="button_mark_done"
+                                invisible="not move_raw_ids or not show_produce_all or not state =='progress'"
+                                string="Produce All" type="object" class="oe_highlight" data-hotkey="g"/>
+                        <button name="button_mark_done" invisible="move_raw_ids or not show_produce" string="Produce"
+                                type="object" class="oe_highlight" data-hotkey="g"
+                                confirm="There are no components to consume. Are you still sure you want to continue?"/>
+                        <button name="button_mark_done"
+                                invisible="move_raw_ids or not show_produce_all"
+                                string="Produce All" type="object" class="oe_highlight" data-hotkey="g"
+                                confirm="There are no components to consume. Are you still sure you want to continue?"/>
+                        <button name="action_confirm" invisible="state != 'draft'" string="Confirm" type="object"
+                                class="oe_highlight" data-hotkey="q"/>
+                        <button name="button_plan"
+                                invisible="state not in ('confirmed', 'to_close') or not workorder_ids or is_planned"
+                                type="object" string="Plan" class="oe_highlight" data-hotkey="z"/>
+                        <button name="button_unplan" type="object" string="Unplan"
+                                invisible="not is_planned or state in ['cancel', 'done','ceo_approval','progress']"
+                                data-hotkey="z"/>
+                        <button name="action_start" type="object" string="Start" invisible="state != 'ceo_approval'"/>
+
+                        <button name="action_assign"
+                                invisible="state in ('draft', 'done', 'cancel')"
+                                string="Check Availability" type="object" data-hotkey="c"/>
+                        <button name="do_unreserve"
+                                invisible="state not in ('confirmed') or not unreserve_visible"
+                                string="Unreserve" type="object" data-hotkey="w"/>
+
+
+                        <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,done"/>
+                        <button name="action_cancel" type="object" string="Cancel" data-hotkey="x"
+                                invisible="not id or state in ('done', 'cancel','confirmed','ceo_approval','progress')"
+                                confirm="Are you sure you want to cancel this manufacturing order?"
+                                confirm-label="Confirm" cancel-label="Discard"/>
+                        <button name="button_unbuild" type="object" string="Unbuild" invisible="state != 'done'"
+                                data-hotkey="shift+v"/>
+                    </header>
+                </xpath>
+
+
+            </field>
+        </record>
+    </data>
+</odoo>

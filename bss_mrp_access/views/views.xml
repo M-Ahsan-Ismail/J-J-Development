@@ -1,0 +1,15 @@
+<odoo>
+  <data>
+    <record id="mrp_bom_form_view_inherited" model="ir.ui.view">
+            <field name="name">mrp.bom.form.inherited</field>
+            <field name="model">mrp.bom</field>
+            <field name="inherit_id" ref="mrp.mrp_bom_form_view" />
+            <field name="arch" type="xml">
+              <xpath expr="//button[@name='%(mrp.action_report_mrp_bom)d']" position="attributes">
+                <attribute name="groups">bss_mrp_access.group_mrp_cost</attribute>
+              </xpath>
+            </field>
+    </record>
+
+  </data>
+</odoo>

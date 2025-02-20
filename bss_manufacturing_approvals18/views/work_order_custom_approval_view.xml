@@ -1,0 +1,60 @@
+<odoo>
+    <data>
+        <record id="manufacturing_workorder_form_view_inherit" model="ir.ui.view">
+            <field name="name">mrp.workorder.form.view</field>
+            <field name="model">mrp.workorder</field>
+            <field name="inherit_id" ref="mrp.mrp_production_workorder_form_view_inherit"/>
+            <field name="priority" eval="8"/>
+            <field name="arch" type="xml">
+
+                <xpath expr="//field[@name='date_start']" position="after">
+                    <field name="state" readonly="0" invisible="0"/>
+                </xpath>
+
+
+                <xpath expr="//header" position="replace">
+                    <field name="quality_check_fail" invisible="1"/>
+                    <header>
+                        <field name="state" widget="statusbar" statusbar_visible="pending,waiting,ready,progress,done"/>
+                    </header>
+                </xpath>
+
+
+                <xpath expr="//header" position="inside">
+
+                    <button name="submit_for_approval"
+                            type="object"
+                            string="Submit For Approval"
+                            invisible="state not in ['pending','waiting']"
+                            class="oe_highlight"/>
+
+
+                    <button name="button_manager_approval"
+                            type="object"
+                            string="Verified"
+                            invisible="state not in 'submit_for_approval'"
+                            groups="bss_manufacturing_approvals18.manufacturing_approval_level1"
+                            class="oe_highlight"
+                    />
+
+                    <button name="button_ceo_approved"
+                            type="object"
+                            string="Approved"
+                            groups="bss_manufacturing_approvals18.manufacturing_approval_level2"
+                            invisible="state not in 'manager_approval'"
+                            class="oe_highlight"
+                    />
+
+
+                    <button name="action_open_mes" type="object" icon="oi-view-kanban" string="Open Shop Floor"
+                            groups="mrp_workorder.group_mrp_wo_shop_floor" invisible="state in ['done', 'cancel']"/>
+
+                    <button name="action_mark_as_done" type="object" string="Mark as Done"
+                            invisible="state in ['done', 'cancel'] or state not in 'ceo_approval'"/>
+                </xpath>
+
+
+            </field>
+        </record>
+    </data>
+</odoo>

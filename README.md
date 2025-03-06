@@ -1,5 +1,24 @@
 # J&J-Development
-Dual Approvals On Purchase , Sale , Accounting and develpment of gate pass module.
+Dual Approvals On Purchase ,Budget,Inventory,Asset, Sale , Accounting and develpment of gate pass module.
+
+
+## Manufacturing_Access
+Modified the existing BoM Form View (mrp.bom.form) by inheriting it.
+Added a group restriction (bss_mrp_access.group_mrp_cost) to control access to the BoM report button (previously available to all).
+Now, only users in the group_mrp_cost can see the report button.
+
+#### Dynamically Controlling BoM Cost Visibility by JavaScript:
+
+Patched BomOverviewComponent to modify the behavior of getBomData().
+
+Used Odoo’s user.hasGroup() method to dynamically check if the user belongs to bss_mrp_access.group_mrp_cost.
+
+If the user is in the group, the "Cost" option is shown; otherwise, it's hidden.
+
+Patched BomOverviewDisplayFilter and removed "Costs" from the available filters.
+
+This ensures that users cannot enable "Costs" unless they have the required access.
+
 
 
 ## Gate Pass Module
@@ -87,22 +106,6 @@ Activities are updated when approvals are completed.
 
 
 
-## MRP Access
-Modified the existing BoM Form View (mrp.bom.form) by inheriting it.
-Added a group restriction (bss_mrp_access.group_mrp_cost) to control access to the BoM report button (previously available to all).
-Now, only users in the group_mrp_cost can see the report button.
-
-#### Dynamically Controlling BoM Cost Visibility by JavaScript:
-
-Patched BomOverviewComponent to modify the behavior of getBomData().
-
-Used Odoo’s user.hasGroup() method to dynamically check if the user belongs to bss_mrp_access.group_mrp_cost.
-
-If the user is in the group, the "Cost" option is shown; otherwise, it's hidden.
-
-Patched BomOverviewDisplayFilter and removed "Costs" from the available filters.
-
-This ensures that users cannot enable "Costs" unless they have the required access.
 
 
 

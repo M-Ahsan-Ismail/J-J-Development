@@ -1,7 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<odoo>
-    <record id="backdate_access_group" model="res.groups">
-        <field name="name">Backdate Providence</field>
-        <field name="category_id" ref="base.module_category_hidden" />
-    </record>
-</odoo>

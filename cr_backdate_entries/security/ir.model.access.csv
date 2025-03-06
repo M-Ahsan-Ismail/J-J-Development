@@ -1,2 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_backdate_entries_wiz,access.backdate.entries.wiz,model_backdate_entries_wiz,cr_backdate_entries.backdate_access_group,1,1,1,1

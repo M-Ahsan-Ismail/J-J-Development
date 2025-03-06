@@ -1,5 +1,7 @@
 # J&J-Development
-Dual Approvals On Purchase ,Budget,Inventory,Asset, Sale , Accounting and develpment of gate pass module.
+Dual Approvals On Purchase ,Budget,Inventory, Asset, Sale , Accounting and visibility of Bom Cost and develpment of gate pass module and backdate entries module.
+
+## backdate_entries
 
 
 ## Manufacturing_Access

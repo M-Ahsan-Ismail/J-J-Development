@@ -6,6 +6,11 @@ Dual Approvals On Purchase ,Budget,Inventory, Asset, Sale , Accounting and visib
 
 ## backdate_entries
 
+## Employee Expense Module
+
+## Auto Invoice On Base Of Payment Terms
+
+## Accounting_late_payment_surcharge
 
 ## Accounting: Force Payments to Stay in Draft Created From Vendor Bills or Invoices
 This module ensures that payments created from bills or invoices remain in the draft state. It overrides the create, _prepare_payment_vals, and _create_payments methods to enforce this behavior, preventing automatic validation of payments.

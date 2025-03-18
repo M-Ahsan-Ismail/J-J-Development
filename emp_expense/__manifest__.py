@@ -9,7 +9,7 @@
     'website': '',
     'license': 'LGPL-3',
     'depends': [
-        'base',  # Core Odoo module (always required)
+        'base', 'website' ,# Core Odoo module (always required)
         'hr', 'hr_expense',  # Employee management (for linking expenses to employees)
         'account', 'account_accountant',  # Accounting module (for journal entries & financial integration)
         'mail',  # Email notifications (for approvals & status updates)

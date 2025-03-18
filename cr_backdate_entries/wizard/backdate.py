@@ -252,30 +252,27 @@ class BackDateWiz(models.TransientModel):
 
             self._cr.commit()  # Commit changes
 
-        # - Old Code
+       
+        elif active_model == 'account.move':
+        # Filter for vendor bills only
+        vendor_bill_ids = self.env['account.move'].browse(active_ids).filtered(lambda move: move.move_type == 'in_invoice').ids
 
-        # elif active_model == 'mrp.production':
-        #     mrp_prod = self.env['mrp.production'].browse(self._context.get('active_ids'))
-        #     for mrp in mrp_prod:
-        #         move_ids = mrp.move_raw_ids
-        #         # Update stock move dates
-        #         move_ids.sudo().write({'date': self.date})
-        #         # # Update stock valuation layers
-        #         # self.env.cr.execute("""
-        #         #                     UPDATE stock_valuation_layer
-        #         #                     SET create_date = %s
-        #         #                     WHERE stock_move_id IN %s
-        #         #                 """, (self.date, tuple(move_ids.ids)))
-        #         # Update stock move line dates
-        #         move_line_ids = self.env['stock.move.line'].search(
-        #             ['|', ('move_id', 'in', move_ids.ids), ('reference', '=', mrp.name)])
-        #         move_line_ids.sudo().write({'date': self.date})
-        #         # Update picking dates
-        #         mrp.sudo().write({
-        #             'date_start': self.date,
-        #             'date_finished': self.date,
-        #             'create_date': self.date,
-        #         })
+        if not vendor_bill_ids:
+                return
+
+        # Update invoice_date for vendor bills using SQL
+        self._cr.execute("""
+                UPDATE account_move 
+                SET invoice_date = %s,
+                    name = NULL
+                WHERE id IN %s 
+                AND move_type = 'in_invoice'
+            """, (self.date,  tuple(vendor_bill_ids)))
+        self._cr.commit()
+
+
+
+
 
     def change_to_backdate_wizard(self):
         active_ids = self.env.context.get('active_ids')

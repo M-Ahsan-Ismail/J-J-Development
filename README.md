@@ -2,7 +2,9 @@
 Dual Approvals On Purchase ,Budget,Inventory, Asset, Sale , Accounting and visibility of Bom Cost and develpment of gate pass module and backdate entries module.
 
 ## Gate Pass Module
+Developed the gate pass module on stock picking , having menus of inward pass  , outward pass in configuration uder label Gate Pass Info.
 
+It tracks gate passes for stuff coming in or going out, shows driver and vehicle details. Each stock picking has a button to see related passes, each pass has a button for its picking, with product and quantity info. Reports show driver, vehicle, pass number, date, products, quantity, and signature lines.
 
 ## backdate_entries
 

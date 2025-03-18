@@ -1,0 +1,86 @@
+<?xml version="1.0" ?>
+<odoo>
+    <record id="expense_request_email_to_manager_id" model="mail.template">
+        <field name="name">Email</field>
+        <field name="model_id" ref="expense_employee.model_expense_request"/>
+        <field name="subject">Requesting Expense Approval</field>
+
+        <field name="email_from">{{ object.env.user.email or '' }}</field>
+        <field name="partner_to">{{ object.expense_manager_id.email or object.expense_manager_id.partner_id.email}}</field>
+        <field name="description">Email Sent To Manager When State Is Submitted</field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                    Dear Manager,
+                    An expense request has been submitted by <span t-field="object.employee_id.name"/>.
+                </p>
+
+            </div>
+        </field>
+        <field name="auto_delete" eval="False"/>
+    </record>
+
+
+    <record id="expense_request_email_to_employee_id" model="mail.template">
+        <field name="name">Email</field>
+        <field name="model_id" ref="expense_employee.model_expense_request"/>
+        <field name="subject">Email On State Rejected</field>
+
+        <field name="email_from">{{ object.env.user.email or '' }}</field>
+        <field name="email_to">{{ object.employee_id.private_email }}</field>
+
+        <field name="description">Email Sent To Employee When State Is Rejected</field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p style="margin: 0px; padding: 0px; font-size: 13px;">
+                    Dear <span t-field="object.employee_id.name"/>,
+                    An expense request that you submitted on date <span t-field="object.expense_date"/> has been
+                    rejected by <span t-field="object.expense_manager_id.name"/>.
+                </p>
+            </div>
+        </field>
+
+        <field name="auto_delete" eval="False"/>
+    </record>
+
+
+    <record id="expense_request_email_to_finance_group_users_id" model="mail.template">
+        <field name="name">Email</field>
+        <field name="model_id" ref="expense_employee.model_expense_request"/>
+        <field name="subject">Email On State Approved</field>
+
+        <field name="email_from">{{ object.env.user.email or '' }}</field>
+        <field name="email_to">{{ ','.join(object.get_finance_group_emails()) }}</field>
+
+        <field name="description">Email Sent To Users Having Finance Group Security, When State Is Approved</field>
+        <field name="body_html" type="html">
+            <div style="margin: 0px; padding: 0px;">
+                <p style="margin: 0px; padding: 10px; font-size: 14px;">
+                    <strong>Dear Finance Team,</strong>
+                </p>
+                <p>
+                    An expense request has been approved and requires your action.
+                </p>
+                <ul>
+                    <li><strong>Expense ID:</strong> <span t-field="object.name"/></li>
+                    <li><strong>Employee:</strong> <span t-field="object.employee_id.name"/></li>
+                    <li><strong>Amount:</strong> <span t-field="object.amount"/> <span
+                            t-field="object.currency_id.name"/></li>
+                    <li><strong>Approved By:</strong> <span t-field="object.expense_manager_id.name"/></li>
+                    <li><strong>Approval Date:</strong> <span t-field="object.write_date"/></li>
+                </ul>
+                <p>
+                    Please process the payment as soon as possible.
+                    Click <a t-attf-href="/web#id={{ object.id }}&amp;model=expense.request&amp;view_type=form">here</a> to
+                    review the expense.
+                </p>
+                <p>Thank you.</p>
+            </div>
+        </field>
+
+
+        <field name="auto_delete" eval="False"/>
+    </record>
+
+
+</odoo>

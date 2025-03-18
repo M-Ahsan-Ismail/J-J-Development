@@ -1,0 +1,153 @@
+<odoo>
+    <template id="portal_employee_expenses" name="Portal My Home : Employee Expenses"
+              inherit_id="portal.portal_my_home">
+        <xpath expr="//div[contains(@class, 'o_portal_docs')]" position="inside">
+            <div class="o_portal_docs">
+                <div class="box"
+                     style="cursor: pointer; width: 420px; height: 100px;
+                        background: linear-gradient(to right, #b9e4ff, #72c2f1);
+                        color: black; border-radius: 12px; padding: 10px;
+                        box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.15);
+                        transition: transform 0.2s, box-shadow 0.2s;">
+                    <a t-att-href="'/employee/expense'"
+                       style="display: block; text-decoration: none; color: black;">
+                        <div class="o_portal_doc">
+                            <h4 style="color: #2c3e50; font-family: 'Playfair Display', serif;
+                                   font-weight: 700; display: flex; align-items: center;
+                                   justify-content: space-between;">
+                                Test Expenses
+                                <img src="/hotel_management/static/src/img/admin_approval.png" alt="Check-in Icon"
+                                     style="width: 40px; height: 40px;
+                                        background-color: white; /* Adds a white background to the icon */
+                                        padding: 5px; /* Creates a separation between the icon and background */
+                                        border-radius: 50%; /* Makes it circular */
+                                        box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+                                        transition: transform 0.3s ease-in-out;"/>
+                            </h4>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </xpath>
+    </template>
+
+
+    <template id="employee_expense_form" name="Expense Form">
+        <t t-call="website.layout">
+            <t t-set="title">My Expenses</t>
+            <div class="container mt-4">
+
+                <h1 class="text-center mb-4">
+                    Expense Details
+                </h1>
+
+                <h3 class="text-center mb-4">
+                    <span><t t-esc="current_user.name"/></span>
+                </h3>
+
+                <!-- Check if there are expenses -->
+                <t t-if="user_expenses_list">
+                    <table class="table table-striped table-bordered table-hover">
+                        <thead class="thead-dark">
+                            <tr>
+                                <th scope="col">Expense ID</th>
+                                <th scope="col">Date</th>
+                                <th scope="col">Amount</th>
+                                <th scope="col">Currency</th>
+                                <th scope="col">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <t t-foreach="user_expenses_list" t-as="expense">
+                                <tr>
+                                    <td><t t-esc="expense['expense_id']"/></td>
+                                    <td><t t-esc="expense['expense_date']" t-options='{"widget": "date"}'/></td>
+                                    <td><t t-esc="expense['expense_amount']"
+                                           t-options='{"widget": "float", "precision": 2}'/></td>
+                                    <td><t t-esc="expense['currency_id']"/></td>
+                                    <td>
+                                        <t t-if="expense['state'] == 'draft'">
+                                            <span class="badge badge-secondary">Draft</span>
+                                        </t>
+                                        <t t-if="expense['state'] == 'submitted'">
+                                            <span class="badge badge-info">Submitted</span>
+                                        </t>
+                                        <t t-if="expense['state'] == 'approved'">
+                                            <span class="badge badge-primary">Approved</span>
+                                        </t>
+                                        <t t-if="expense['state'] == 'paid'">
+                                            <span class="badge badge-success">Disbursed</span>
+                                        </t>
+                                        <t t-if="expense['state'] == 'rejected'">
+                                            <span class="badge badge-danger">Rejected</span>
+                                        </t>
+                                    </td>
+                                </tr>
+                            </t>
+                        </tbody>
+
+                    </table>
+
+                    <!-- Back Button -->
+                    <div class="text-center mt-4">
+                        <a href="javascript:history.back()" class="btn btn-secondary">
+                            Back
+                        </a>
+                    </div>
+
+                </t>
+                <t t-else="">
+                    <div class="alert alert-info text-center">
+                        <p>No expense requests found.</p>
+                    </div>
+
+                    <!-- Back Button for Empty Case -->
+                    <div class="text-center mt-4">
+                        <a href="javascript:history.back()" class="btn btn-secondary">
+                            Back
+                        </a>
+                    </div>
+                </t>
+            </div>
+
+            <!-- Inline CSS for additional styling -->
+            <style>
+                .table {
+                    width: 80%;
+                    margin: 0 auto;
+                    border-collapse: collapse;
+                }
+
+                .thead-dark th {
+                    background-color: #343a40;
+                    color: white;
+                }
+
+                .table-hover tbody tr:hover {
+                    background-color: #f1f1f1;
+                }
+
+                .container {
+                    padding: 20px;
+                }
+
+                .btn-secondary {
+                    padding: 10px 20px;
+                    font-size: 16px;
+                    border-radius: 8px;
+                    background-color: #6c757d;
+                    color: white;
+                    text-decoration: none;
+                    transition: 0.3s;
+                    display: inline-block;
+                }
+
+                .btn-secondary:hover {
+                    background-color: #5a6268;
+                }
+            </style>
+        </t>
+    </template>
+
+
+</odoo>

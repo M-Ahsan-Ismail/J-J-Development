@@ -1,0 +1,139 @@
+<odoo>
+    <record id="view_res_config_settings_inherit_expense_manager" model="ir.ui.view">
+        <field name="name">res.config.settings.expense.manager</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="hr.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='hr']" position="inside">
+               <h2>Default Expense Manager</h2>
+                <div class="row mt16 o_settings_container">
+                    <div class="col-12 col-lg-6 o_setting_box">
+                        <div class="o_setting_right_pane">
+                            <div class="d-flex align-items-center">
+                                <field name="expense_manager"
+                                       placeholder="Select Default Expense Manager"
+                                       class="ml-0 mr-2"/>
+                            </div>
+                            <div class="text-muted">
+                                This user will be used as default manager for expenses.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+
+
+
+    <record id="account_payment_form_inherit" model="ir.ui.view">
+        <field name="name">account.payment.form</field>
+        <field name="model">account.payment</field>
+        <field name="inherit_id" ref="account.view_account_payment_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='memo']" position="after">
+                <field name="expense_id" readonly="1"/>
+            </xpath>
+        </field>
+    </record>
+
+
+    <record id="expense_request_sequence_id" model="ir.sequence">
+        <field name="name">Expense Request</field>
+        <field name="code">expense.request.sequence</field>
+        <field name="prefix">EXP/2025/</field>
+        <field name="padding">10</field>
+    </record>
+
+    <record id="expense_request_form_view" model="ir.ui.view">
+        <field name="model">expense.request</field>
+        <field name="name">expense.request.form</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_reset_to_draft" string="Reset To Draft" type="object" class="oe_highlight"
+                            invisible="state not in 'rejected'"/>
+
+                    <button name="action_submit" string="Submit" type="object" class="oe_highlight"
+                            invisible="state not in 'draft'"/>
+
+                    <button name="button_approve" string="Approve" type="object"
+                            class="oe_highlight" groups="expense_employee.manager_approval_verify"
+                            invisible="state not in 'submitted'"/>
+
+                    <button name="create_payment" string="Create Payment" type="object"
+                            class="oe_highlight" groups="expense_employee.finance_approval_verify"
+                            invisible="state not in 'approved'"/>
+
+                    <button name="%(expense_employee.rejection_wizard_action)d" string="Reject" type="action"
+                            class="oe_highlight" groups="expense_employee.manager_approval_verify"
+                            invisible="state not in 'submitted'"/>
+
+                    <field name="state" widget="statusbar" statusbar_visible="draft,approved,paid"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name" readonly="1"/>
+                        </h1>
+                    </div>
+
+                    <group>
+                        <group string="Expense Employee">
+                            <field name="employee_id" readonly="state in ['submitted','approved','paid']"/>
+                        </group>
+
+                        <group string="Expense Manager">
+                            <field name="expense_manager_id" readonly="1" force_save="1"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <group string="Monetary Details">
+                            <field name="amount" readonly="state in ['submitted','approved','paid']"/>
+                            <field name="currency_id" readonly="1"/>
+                            <field name="expense_date" readonly="state in ['submitted','approved','paid']"/>
+                        </group>
+
+                        <group string="Attachments">
+                            <field name="attachment_ids"/>
+                        </group>
+                    </group>
+
+                    <group>
+                        <group string="Approved Details">
+                            <field name="approved_by" readonly="1"/>
+                            <field name="approved_date" readonly="1"/>
+                        </group>
+
+                        <group string="Payment Details">
+                            <field name="payment_id" readonly="1"/>
+                            <field name="state" invisible="0"/>
+                        </group>
+                    </group>
+
+
+                </sheet>
+                <chatter reload_on_follower="True"/>
+            </form>
+        </field>
+    </record>
+
+
+    <record id="expense_request_list_view" model="ir.ui.view">
+        <field name="model">expense.request</field>
+        <field name="name">expense.request.list</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="employee_id"/>
+                <field name="expense_date"/>
+                <field name="amount"/>
+            </list>
+        </field>
+    </record>
+
+
+</odoo>
+
+

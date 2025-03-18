@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_expense_request,expense.request,model_expense_request,,1,1,1,1
+access_rejection_wizard,rejection.wizard,model_rejection_wizard,,1,1,1,1❣

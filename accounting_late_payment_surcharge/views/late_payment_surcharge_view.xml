@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="account_payment_term_form_inherit" model="ir.ui.view">
+        <field name="name">account.payment.term.form</field>
+        <field name="model">account.payment.term</field>
+        <field name="inherit_id" ref="account.view_payment_term_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="(//field[@name='company_id'])[2]" position="after">
+                <field name="late_payment_surcharge"/>
+                <field name="Daily_Surcharge_percentage" invisible="late_payment_surcharge  == False"/>
+            </xpath>
+
+
+        </field>
+    </record>
+
+    <record id="view_res_config_settings_inherit_late_payment_account" model="ir.ui.view">
+        <field name="name">res.config.settings.payment.journal</field>
+        <field name="model">res.config.settings</field>
+        <field name="inherit_id" ref="account.res_config_settings_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//app[@name='account']" position="inside">
+                <h2>Default Late Payment Account</h2>
+                <div class="row mt16 o_settings_container">
+                    <div class="col-12 col-lg-6 o_setting_box">
+                        <div class="o_setting_right_pane">
+                            <div class="d-flex align-items-center">
+                                <field name="late_payment_surcharge_account"
+                                       placeholder="Select Default Late Payment Account"
+                                       class="ml-0 mr-2"/>
+                            </div>
+                            <div class="text-muted">
+                                This account will be used as default for late payments.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+    <record id="view_account_payment_form_inherit_late_surcharge" model="ir.ui.view">
+        <field name="name">account.payment.form.inherit.late.surcharge</field>
+        <field name="model">account.payment</field>
+        <field name="inherit_id" ref="account.view_account_payment_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='amount']" position="after">
+                <field name="late_payment_surcharge" readonly="1" widget="monetary"
+                       options="{'currency_field': 'currency_id'}"/>
+                <div class="text-muted" invisible="late_payment_surcharge == 0.0">
+                    Late Payment Surcharge of <field name="late_payment_surcharge" widget="monetary"
+                                                     options="{'currency_field': 'currency_id'}"/> has been applied.
+                </div>
+            </xpath>
+        </field>
+    </record>
+
+
+        <record id="view_account_payment_register_form_inherit_late_surcharge" model="ir.ui.view">
+            <field name="name">account.payment.register.form.inherit.late.surcharge</field>
+            <field name="model">account.payment.register</field>
+            <field name="inherit_id" ref="account.view_account_payment_register_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//group[1]" position="before">
+                    <div role="alert" class="alert alert-info" invisible="late_payment_surcharge == 0">
+                        <p class="m-0"><b>Late Payment Surcharge of <field name="late_payment_surcharge"/> has been applied.</b></p>
+                    </div>
+                </xpath>
+                <xpath expr="//field[@name='payment_date']" position="before">
+                    <field name="late_payment_surcharge" readonly="1" widget="monetary"
+                           options="{'currency_field': 'currency_id'}" invisible="late_payment_surcharge == 0"/>
+                </xpath>
+            </field>
+        </record>
+
+
+
+</odoo>

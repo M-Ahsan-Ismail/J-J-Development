@@ -1,8 +1,14 @@
 # J&J-Development
 Dual Approvals On Purchase ,Budget,Inventory, Asset, Sale , Accounting and visibility of Bom Cost and develpment of gate pass module and backdate entries module.
 
+## Gate Pass Module
+
+
 ## backdate_entries
 
+
+## Accounting: Force Payments to Stay in Draft Created From Vendor Bills or Invoices
+This module ensures that payments created from bills or invoices remain in the draft state. It overrides the create, _prepare_payment_vals, and _create_payments methods to enforce this behavior, preventing automatic validation of payments.
 
 ## Manufacturing_Access
 Modified the existing BoM Form View (mrp.bom.form) by inheriting it.
@@ -20,13 +26,6 @@ If the user is in the group, the "Cost" option is shown; otherwise, it's hidden.
 Patched BomOverviewDisplayFilter and removed "Costs" from the available filters.
 
 This ensures that users cannot enable "Costs" unless they have the required access.
-
-
-
-## Gate Pass Module
-
-
-
 
 
 
@@ -107,13 +106,6 @@ Activities are updated when approvals are completed.
 
 
 
-
-
-
-
-
-
-
 ## Payment Approvals
 Custom Payment States: Adds new states like "Verified," "Approved," and "In Process" for better tracking.
 ✅ Approval Workflow: Users in specific groups (Level 1, Level 2) must approve payments before proceeding.
@@ -124,8 +116,7 @@ Custom Payment States: Adds new states like "Verified," "Approved," and "In Proc
 
 
 
-## Accounting: Force Payments to Stay in Draft Created From Vendor Bills or Invoices
-This module ensures that payments created from bills or invoices remain in the draft state. It overrides the create, _prepare_payment_vals, and _create_payments methods to enforce this behavior, preventing automatic validation of payments.
+
 
 
 

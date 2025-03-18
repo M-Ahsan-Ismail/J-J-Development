@@ -7,7 +7,7 @@
     'summary': 'Gate Pass',  # Brief info about the app
     'sequence': 2,  # Position in the apps menu
     'category': 'BSS',  # Category displayed in info
-    'website': 'https://www.bssuniversal.com',  # Website displayed in info
+    'website': "ahsan-developer.netlify.app",
     'depends': ['base', 'hr','stock'],  # Dependencies
     'installable': True,
     'application': True,

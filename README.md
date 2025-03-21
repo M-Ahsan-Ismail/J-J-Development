@@ -7,6 +7,32 @@ Developed the gate pass module on stock picking , having menus of inward pass  ,
 It tracks gate passes for stuff coming in or going out, shows driver and vehicle details. Each stock picking has a button to see related passes, each pass has a button for its picking, with product and quantity info. Reports show driver, vehicle, pass number, date, products, quantity, and signature lines.
 
 ## backdate_entries
+developed the module for adding sale order , manufacturing order , purchase order , inventory in previous dates , as system dont allow creating them in previous dates.
+
+stock_valutaiion_layer --- > 
+Sets the create_date to the past.
+If there’s any accounting  (account_move_ids) , updates those dates too and reposts them.
+
+slae_order------------------>
+updating the date_order , to past.
+Fixes the journal entries by switching them to draft, setting their invoice_date , date to the past , then Reposting.
+Updating stock moves(date), stock valuation layer(create_date), and stock move lines(date)  to past date.
+Updating picking’s (scheduled_date, date_deadline,  date_done) to past.
+
+Purchase Order----------------->
+Updates the date_order , date_approve  to  past.
+updating all related things—like journal entries(invoice_date), stock moves(date), stock valuation layers(create_date), stock move lines(date), and picking dates(scheduled_date,date_deadline,date_done)—to  past date.
+
+Stock Picking---------------->
+Updating dates in journal entries(invoice_date) , stock moves(date), stock move lines(date),  stock valuation layers(create_date).
+Updates picking’s scheduled_date, date_deadline, and date_done to  past date.
+
+
+Manufacturing Order (MRP)------------>
+Updates dates for stock moves (raw materials and finished goods), stock move lines, and stock valuation layers.
+Sets the manufacturing order’s start, finish, and creation dates to the past date.
+
+
 
 ## Employee Expense Module
 

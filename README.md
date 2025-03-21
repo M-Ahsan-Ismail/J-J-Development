@@ -29,8 +29,8 @@ Updates picking’s scheduled_date, date_deadline, and date_done to  past date.
 
 
 Manufacturing Order (MRP)------------>
-Updates dates for stock moves (raw materials and finished goods), stock move lines, and stock valuation layers.
-Sets the manufacturing order’s start, finish, and creation dates to the past date.
+Updating date for stock moves (raw materials and finished goods), stock move lines, and create_date for stock valuation layers.
+Sets the manufacturing order’s date_start, date_finished,  create_date dates to  past date.
 
 
 

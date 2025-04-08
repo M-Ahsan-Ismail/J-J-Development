@@ -35,6 +35,14 @@ Sets the manufacturing order’s date_start, date_finished,  create_date dates t
 
 
 ## Employee Expense Module
+Developed an separate module for handling employee expenses , An default expenese manager an be seted in settings of employee.
+employee can selct the amount and submits the request other fileds got auto filled , expense manager fetched by default_get ,get_param.
+A email goes to expense manager refering employeee that has submitted an expense.
+manager has its button approval , having approve , reject. if reject give remarks and will be looged in chatter and also an email will be sent to employee regarding his status that has been rejected.
+if Approved an email with link to expense will be sent to finance users group having employee, expenese id and amount details.Finance team then can register payment.after creating payment the created payment and expense will be linked together.
+can view the related payment and confirm it.
+
+
 
 ## Auto Invoice On Base Of Payment Terms
 

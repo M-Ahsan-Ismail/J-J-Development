@@ -43,8 +43,21 @@ if Approved an email with link to expense will be sent to finance users group ha
 can view the related payment and confirm it.
 
 
-
 ## Auto Invoice On Base Of Payment Terms
+generates an invoice of an sale order when due date arises depending on its payment terms.
+It first fetches all confirmed sale orders (state = 'sale').       
+it 1st checks is sale order has payment terms or not , if not skip.
+if yes then:
+1st it checks all invoices linked to this sale order and sum up there amount and check weather the amount equals to current sale order if equal skip , 
+if amount to invoice less then total amount then it tries to invoice remaining amount base of no.of days passed after invoice date of sale order form and if these days count matches any line of terms id then invoice else skips.
+
+
+
+
+
+
+
+
 
 ## Accounting_late_payment_surcharge
 

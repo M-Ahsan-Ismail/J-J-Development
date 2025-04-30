@@ -9,6 +9,7 @@ Deveoped cost sheet module for streamlining the quotation creation from crm , in
 it has workflow of submiting cost sheet then manager can approve or rejct if reject give remarks and on approval can convert the cost sheet into quotation by adding products qty uom unit_cost and validating single quotation against 1 cost sheet and canceling cost sheet cancels its quotation if in draft or sent state if in sale_order then cant cancel costsheet.workflow of archiving record on cancel and have validations on deleting if any quotation in sale_order then cant delete.
 Can adjust quotation after creation from cost sheet if any desire of chnaging product or anything.
 Moderan Kanban views displaying count of sale orders and quotations.
+Report showing the detais of cost sheet
 
 
 ## Gate Pass Module

@@ -1,6 +1,13 @@
 # J&J-Development
 Dual Approvals On Purchase ,Budget,Inventory, Asset, Sale , Accounting and visibility of Bom Cost and develpment of gate pass module and backdate entries module.
 
+## Procrutment
+
+
+## Cost Sheet Builder
+
+
+
 ## Gate Pass Module
 Developed the gate pass module on stock picking , having menus of inward pass  , outward pass in configuration uder label Gate Pass Info.
 

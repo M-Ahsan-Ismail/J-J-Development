@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="seq_cost_sheet_builder" model="ir.sequence">
+            <field name="name">Cost Sheet Builder</field>
+            <field name="code">cost.sheet.builder</field>
+            <field name="prefix">CS/</field>
+            <field name="padding">4</field>
+            <field name="number_next">1</field>
+            <field name="number_increment">1</field>
+        </record>
+
+        <record id="view_cost_sheet_builder_form" model="ir.ui.view">
+            <field name="name">cost.sheet.builder.form</field>
+            <field name="model">cost.sheet.builder</field>
+            <field name="arch" type="xml">
+                <form string="Cost Sheet Builder">
+                    <header>
+                        <button name="action_save" type="object" string="Save" class="btn-primary"
+                                invisible="state in ['draft','quotation','approve','cancel','submit_to_approve','reject']"/>
+
+                        <button name="action_submit" string="Submit" type="object"
+                                class="oe_highlight" invisible="state not in 'draft'"/>
+
+                        <button name="action_approve" string="Accept" type="object"
+                                class="oe_highlight" invisible="state not in ['submit_to_approve']"/>
+
+                        <button string="Reject" class="btn-secondary"
+                                name="%(action_rejection_wizard_cost_sheet_builder)d"
+                                invisible="state not in ['submit_to_approve']" type="action"
+                                confirm="Are you sure you want to reject this request?"/>
+
+                        <button name="convert_to_quotation" string="Convert to Quotation" type="object"
+                                class="oe_highlight" invisible="state not in 'approve'"/>
+
+                        <button name="action_adjust_quotation" string="Adjust Quotation" type="object"
+                                class="oe_dark" invisible="state not in 'quotation'"/>
+
+                        <button string="Cancel" class="btn-secondary" name="cancel_button"
+                                invisible="state in ['draft','cancel','reject']" type="object"/>
+
+                        <button name="action_reset_to_draft" type="object" string="Reset to Draft" class="btn-secondary"
+                                invisible="state not in  ['cancel']"/>
+
+                        <field name="state" widget="statusbar" statusbar_visible="draft,approve,cancel"/>
+
+                    </header>
+                    <sheet>
+
+                        <div class="oe_button_box" name="button_box">
+                            <button name="action_view_related" type="object" class="oe_stat_button"
+                                    icon="fa-shopping-cart">
+                                <div class="o_stat_info">
+                                    <field name="related_sale_orders_count" class="o_stat_value"/>
+                                    <span class="o_stat_text">Sale/Orders</span>
+                                </div>
+                            </button>
+                        </div>
+
+
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name" readonly="1"/>
+                            </h1>
+                        </div>
+
+                        <group>
+                            <group string="Customer Details">
+                                <field name="customer_id"/>
+                                <field name="email"/>
+                                <field name="tag_ids" widget="many2many_tags"/>
+                            </group>
+
+                            <group string="Link With Opportunity">
+                                <field name="link_with_opportunity"/>
+                                <field name="style"/>
+                                <field name="sale_order_ids" widget="many2many_tags" readonly="1"/>
+                            </group>
+                        </group>
+
+                        <notebook>
+                            <page string="Cost Lines">
+                                <field name="cost_line_ids">
+                                    <list editable="bottom">
+                                        <field name="product_id"/>
+                                        <field name="quantity" sum="Total"/>
+                                        <field name="uom_id"/>
+                                        <field name="unit_cost"/>
+                                        <field name="total_cost"/>
+                                    </list>
+                                </field>
+                                <group class="oe_subtotal_footer oe_right" colspan="2">
+                                    <field name="total_cost" class="oe_subtotal_footer_separator" widget="monetary"/>
+                                </group>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <chatter reload_on_follower="True"/>
+                </form>
+            </field>
+        </record>
+
+        <!-- List View -->
+        <record id="view_cost_sheet_builder_tree" model="ir.ui.view">
+            <field name="name">cost.sheet.builder.list</field>
+            <field name="model">cost.sheet.builder</field>
+            <field name="arch" type="xml">
+                <list string="Cost Sheet Builders">
+                    <field name="priority" optional="show" widget="priority" nolabel="1"/>
+
+                    <field name="name"/>
+                    <field name="customer_id"/>
+                    <field name="style"/>
+                    <field name="link_with_opportunity"/>
+                    <field name="total_cost"/>
+                    <field name="company_id"/>
+                    <field name="activity_ids" optional="show" widget="list_activity"/>
+                    <field name="create_uid" optional="hide"/>
+                    <field name="create_date" optional="hide"/>
+                    <field name="tag_ids" widget="many2many_tags"/>
+                    <field name="state" widget="badge"
+                           decoration-info="state == 'draft'"
+                           decoration-success="state == 'approve'"
+                           decoration-primary="state == 'quotation'"
+                           decoration-danger="state == 'cancel'"/>
+                </list>
+            </field>
+        </record>
+
+
+        <!-- Action for Cost Sheet Builder -->
+        <record id="cost_sheet_builder_act_window" model="ir.actions.act_window">
+            <field name="name">Cost Sheet Builders</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">cost.sheet.builder</field>
+            <field name="view_mode">kanban,list,form</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    No cost sheets found. Click here to create a new Cost Sheet Builder.
+                </p>
+            </field>
+        </record>
+
+
+        <!-- Kanban View -->
+        <record id="view_cost_sheet_builder_kanban" model="ir.ui.view">
+            <field name="name">cost.sheet.builder.kanban</field>
+            <field name="model">cost.sheet.builder</field>
+            <field name="arch" type="xml">
+                <kanban>
+                    <field name="name"/>
+                    <field name="customer_id"/>
+                    <field name="style"/>
+                    <field name="related_sale_orders_count"/>
+                    <field name="state_sale_orders"/>
+                    <field name="state_quotation"/>
+                    <field name="state"/> <!-- Added state field to use in the ribbon condition -->
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div class="position-relative rounded shadow-lg overflow-hidden"
+                                 style="background: linear-gradient(135deg, #f0f9ff, #a24857); border: none; transition: all 0.3s ease;">
+                                <!-- Lost Ribbon -->
+                                <!--                                <widget name="web_ribbon" title="Cancelled" bg_color="text-bg-danger"-->
+                                <!--                                        invisible="state != 'cancel'"/>-->
+
+                                <!-- Top Notch with Name -->
+
+                                <div class="text-center mb-2">
+                                    <b style="background-color: #6F4A63; color: white; display: inline-block; padding: 5px 10px; border-radius: 8px; font-size:18px;">
+                                        <field name="name"/>
+                                    </b>
+                                </div>
+
+                                <!--                                <div class="position-relative">-->
+                                <!--                                    &lt;!&ndash; Background with curved edges &ndash;&gt;-->
+                                <!--                                    <div class="w-100 bg-light" style="height: 20px;"></div>-->
+
+                                <!--                                    &lt;!&ndash; Centered Notch &ndash;&gt;-->
+                                <!--                                    <div class="position-absolute"-->
+                                <!--                                         style="top: -15px; left: 50%; transform: translateX(-50%);">-->
+                                <!--                                        <div class="px-4 py-1 rounded-pill shadow-sm d-inline-block"-->
+                                <!--                                             style="background: linear-gradient(90deg, #6366f1, #8b5cf6); min-width: 120px; text-align: center;">-->
+                                <!--                                            <span class="text-white font-weight-bold">-->
+                                <!--                                                <field name="name"/>-->
+                                <!--                                            </span>-->
+                                <!--                                        </div>-->
+                                <!--                                    </div>-->
+                                <!--                                </div>-->
+
+                                <!-- Content Area with Glass Morphism effect -->
+                                <div class="px-4 pt-4 pb-3"
+                                     style="background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px);">
+
+                                    <widget name="web_ribbon" title="Cancelled" bg_color="text-bg-danger"
+                                            invisible="state != 'cancel'"/>
+
+                                    <!-- Customer Info -->
+                                    <div class="d-flex align-items-center mb-3 py-2 px-3 rounded-lg"
+                                         style="background: rgba(245, 245, 245, 0.7);">
+                                        <div class="d-flex justify-content-center align-items-center rounded-circle mr-5"
+                                             style="width: 36px; height: 36px; background: linear-gradient(45deg, #6366f1, #8b5cf6);">
+                                            <i class="fa fa-user text-white"></i>
+                                        </div>
+                                        <div style="width: 1em;"></div> <!-- Spacer div with width: 1em; -->
+                                        <div>
+                                            <div class="text-muted small text-uppercase">Customer</div>
+                                            <div class="font-weight-bold">
+                                                <field name="customer_id"/>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Style Info -->
+                                    <div class="d-flex align-items-center mb-3 py-2 px-3 rounded-lg"
+                                         style="background: rgba(245, 245, 245, 0.7);">
+                                        <div class="d-flex justify-content-center align-items-center rounded-circle mr-5"
+                                             style="width: 36px; height: 36px; background: linear-gradient(45deg, #6366f1, #8b5cf6);">
+                                            <i class="fa fa-paint-brush text-white"></i>
+                                        </div>
+                                        <div style="width: 1em;"></div> <!-- Spacer div with width: 1em; -->
+                                        <div>
+                                            <div class="text-muted small text-uppercase">Style</div>
+                                            <div class="font-weight-bold">
+                                                <field name="style"/>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Sale Orders -->
+                                    <div class="d-flex align-items-center mb-3 py-2 px-3 rounded-lg"
+                                         style="background: rgba(245, 245, 245, 0.7);">
+                                        <div class="d-flex justify-content-center align-items-center rounded-circle mr-5"
+                                             style="width: 36px; height: 36px; background: linear-gradient(45deg, #6366f1, #8b5cf6);">
+                                            <i class="fa fa-shopping-cart text-white"></i>
+                                        </div>
+                                        <div style="width: 1em;"></div> <!-- Spacer div with width: 1em; -->
+                                        <div class="d-flex align-items-center justify-content-between w-100">
+                                            <div>
+                                                <div class="text-muted small text-uppercase">Sale Orders</div>
+                                            </div>
+                                            <div>
+                                                <span t-att-class="record.state_sale_orders.raw_value > 0 ?
+                                            'badge rounded-pill py-1 px-2' : 'badge rounded-pill py-1 px-2'"
+                                                      style="background: linear-gradient(45deg, #6366f1, #8b5cf6); color: white;">
+                                                    <field name="state_sale_orders"/>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Quotation's -->
+                                    <div class="d-flex align-items-center mb-3 py-2 px-3 rounded-lg"
+                                         style="background: rgba(245, 245, 245, 0.7);">
+                                        <div class="d-flex justify-content-center align-items-center rounded-circle mr-5"
+                                             style="width: 36px; height: 36px; background: linear-gradient(45deg, #6366f1, #8b5cf6);">
+                                            <i class="fa fa-file-text text-white"></i>
+                                        </div>
+                                        <div style="width: 1em;"></div> <!-- Spacer div with width: 1em; -->
+                                        <div class="d-flex align-items-center justify-content-between w-100">
+                                            <div>
+                                                <div class="text-muted small text-uppercase">Quotation's</div>
+                                            </div>
+                                            <div>
+                                                <span t-att-class="record.state_quotation.raw_value > 0 ?
+                                            'badge rounded-pill py-1 px-2' : 'badge rounded-pill py-1 px-2'"
+                                                      style="background: linear-gradient(45deg, #6366f1, #8b5cf6); color: white;">
+                                                    <field name="state_quotation"/>
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+
+                                <!-- Action Buttons - Modern Style -->
+                                <div class="p-3 d-flex justify-content-center"
+                                     style="background: transparent;">
+                                    <button name="convert_to_quotation" type="object"
+                                            class="btn square-pill px-3 py-2 text-white border-0 shadow-sm mx-2 oe_highlight"
+                                            style="transition: all 0.3s ease;">
+                                        <!--                                        <i class="fa fa-file-text-o mr-2"></i>-->
+                                        <b>Convert to Quotation</b>
+                                    </button>
+                                    <button name="action_view_related_sale_orders" type="object"
+                                            class="btn square-pill px-3 py-2 text-white border-0 shadow-sm mx-2 oe_highlight"
+                                            style="transition: all 0.3s ease;">
+                                        <!--                                        <i class="fa fa-eye mr-2"></i>-->
+                                        <b>View Orders</b>
+                                    </button>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <!-- Search and Group By Definition -->
+        <record id="cost_sheet_builder_search_group_by_id" model="ir.ui.view">
+            <field name="name">Cost Sheet Builder</field>
+            <field name="model">cost.sheet.builder</field>
+            <field name="arch" type="xml">
+                <search>
+                    <filter string="Archived Records" name="active" domain="[('active','=',False)]"/>
+                </search>
+            </field>
+        </record>
+
+        <!-- Menu -->
+        <menuitem
+                name="Cost Sheet Builders"
+                id="cost_sheet_builder_base_menu"
+                sequence="1" web_icon="cost_sheet_builder,static/description/icon.png"/>
+
+        <menuitem
+                name="Cost Sheet Builders"
+                id="cost_sheet_builder_menu"
+                parent="cost_sheet_builder_base_menu"
+                action="cost_sheet_builder_act_window"
+                sequence="10"/>
+
+
+    </data>
+</odoo>

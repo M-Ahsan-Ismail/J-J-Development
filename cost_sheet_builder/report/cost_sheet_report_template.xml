@@ -1,0 +1,161 @@
+<odoo>
+    <template id="report_cost_sheet_id">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="obj">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <div class="row">
+                            <div style="text-align: center;">
+                                <h1><strong>Cost Sheet</strong></h1>
+                            </div>
+                        </div>
+                        <br/>
+                        <div class="row">
+                            <div style="text-align: left;">
+                                <strong><t t-esc="obj.name"/></strong>
+                            </div>
+                        </div>
+                        <br/>
+
+                        <div class="row">
+                            <div class="col-8">
+                                <h4 style="text-align: left">Customer</h4>
+                                <div t-field="obj.customer_id"
+                                     t-options='{"widget": "contact", "fields": ["address", "name", "phone", "vat"], "no_marker": True, "phone_icons": True}'/>
+                            </div>
+                            <div class="col-4">
+                                <h5 style="text-align: left">
+                                    Style:
+                                    <span style="font-weight: 500; font-size: 16px;">
+                                        <t t-esc="obj.style"/>
+                                    </span>
+                                </h5>
+                                <h5 style="text-align: left">
+                                    Quotation:
+                                    <t t-if="obj.sale_order_ids">
+                                        <span style="font-weight: 500; font-size: 16px;">
+                                            <t t-foreach="obj.sale_order_ids" t-as="so" t-separator=", ">
+                                                <t t-esc="so.name"/>
+                                            </t>
+                                        </span>
+                                    </t>
+                                    <t t-else="">
+                                        <span style="font-weight: 500; font-size: 16px;">None</span>
+                                    </t>
+                                </h5>
+                            </div>
+
+
+                        </div>
+
+                        <br/><br/><br/>
+
+                        <t t-if="obj.cost_line_ids.product_id">
+                            <table class="table table-sm table-bordered" width="100%">
+                                <thead>
+                                    <tr>
+                                        <th colspan="4" style="text-align: left;">
+                                            <strong> Product </strong>
+                                        </th>
+                                        <th colspan="3" style="text-align: center;">
+                                            <strong> Quantity </strong>
+                                        </th>
+                                        <th colspan="2" style="text-align: center;">
+                                            <strong> UOM </strong>
+                                        </th>
+                                        <th colspan="3" style="text-align: center;">
+                                            <strong> Unit Cost </strong>
+                                        </th>
+                                        <th colspan="3" style="text-align: center;">
+                                            <strong> Total Cost </strong>
+                                        </th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    <t t-set="sum_quantity" t-value="0.0"/>
+                                    <t t-set="sum_cost" t-value="0.0"/>
+
+                                    <t t-foreach="obj.cost_line_ids" t-as="line">
+                                        <tr>
+                                            <td colspan="4" style="text-align: left;">
+                                                <t t-esc="line.product_id.name"/>
+                                            </td>
+                                            <td colspan="3" style="text-align: center;">
+                                                <t t-esc="line.quantity"
+                                                   t-options='{"widget": "float", "precision": 2}'/>
+                                            </td>
+                                            <td colspan="2" style="text-align: center;">
+                                                <t t-esc="line.uom_id.name"/>
+                                            </td>
+                                            <td colspan="3" style="text-align: center;">
+                                                <t t-esc="line.unit_cost"
+                                                   t-options='{"widget": "float", "precision": 2}'/>
+                                            </td>
+                                            <td colspan="3" style="text-align: center;">
+                                                <t t-esc="line.total_cost"
+                                                   t-options='{"widget": "float", "precision": 2}'/>
+                                            </td>
+                                        </tr>
+
+                                        <!-- Accumulate totals with proper float initialization -->
+                                        <t t-set="sum_quantity"
+                                           t-value="(sum_quantity or 0.0) + (line.quantity or 0.0)"/>
+                                        <t t-set="sum_cost"
+                                           t-value="(sum_cost or 0.0) + (line.total_cost or 0.0)"/>
+                                    </t>
+                                    <br/><br/>
+                                    <tr>
+                                        <td colspan="4" style="text-align: left;"><strong>Total:</strong></td>
+                                        <td colspan="3" style="text-align: center;">
+                                            <strong><t t-esc="sum_quantity"
+                                                       t-options='{"widget": "float", "precision": 2}'/></strong>
+                                        </td>
+                                        <td colspan="5"></td>
+                                        <td style="text-align: center;">
+                                            <strong><t t-esc="sum_cost"
+                                                       t-options='{"widget": "float", "precision": 2}'/></strong>
+                                        </td>
+                                    </tr>
+
+                                </tbody>
+
+                            </table>
+                        </t>
+
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <record id="paper_format_rainbow_report" model="report.paperformat">
+        <field name="name">Cost &amp; Sheet</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="orientation">Portrait</field>
+        <field name="page_height">0</field>
+        <field name="page_width">0</field>
+        <field name="margin_top">40</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">5</field>
+        <field name="margin_right">5</field>
+        <field name="header_spacing">40</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <record id="purchase_request_report_action_id" model="ir.actions.report">
+        <field name="name">Cost Sheet Report</field>
+        <field name="model">cost.sheet.builder</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">cost_sheet_builder.report_cost_sheet_id</field>
+        <field name="binding_model_id" ref="cost_sheet_builder.model_cost_sheet_builder"/>
+        <!--        <field name="print_report_name">-->
+        <!--            (object.state in ('draft', 'sent') and 'Request for Quotation - %s' % (object.name) or-->
+        <!--             'Purchase Order - %s' % (object.name))</field>-->
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="cost_sheet_builder.paper_format_rainbow_report"/>
+
+    </record>
+</odoo>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="rejection_wizard_view_form" model="ir.ui.view">
+            <field name="name">rejection.wizard.view.form</field>
+            <field name="model">rejection.wizard</field>
+            <field name="arch" type="xml">
+                <form>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                        </group>
+                    </group>
+
+                    <footer>
+                        <button string="Reject" name="reject_po" type="object" class="oe_highlight"/>
+                        <button string="Cancel" special="cancel"/>
+                    </footer>
+                </form>
+            </field>
+        </record>
+
+        <record id="action_rejection_wizard" model="ir.actions.act_window">
+            <field name="name">Reject Purchase Order Request</field>
+            <field name="res_model">rejection.wizard</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+            <field name="view_id" ref="rejection_wizard_view_form"/>
+        </record>
+    </data>
+</odoo>

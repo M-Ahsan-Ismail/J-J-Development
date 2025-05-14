@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="approval_request_form_inherit" model="ir.ui.view">
+            <field name="name">approval.request.form</field>
+            <field name="model">approval.request</field>
+            <field name="inherit_id" ref="approvals.approval_request_view_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//field[@name='company_id']" position="after">
+                    <field name="procurement_id" readonly="1" invisible="1"/>
+                </xpath>
+
+                <xpath expr="//form/sheet" position="before">
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_related_po_requests" type="object" class="oe_stat_button"
+                                icon="fa-list-alt">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text" style="display: block;">Po Requests</span>
+                                <field name="po_request_count" class="o_stat_value"
+                                       style="display: block; margin-top: 5px;"/>
+                            </div>
+                        </button>
+                    </div>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

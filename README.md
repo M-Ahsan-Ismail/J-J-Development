@@ -2,7 +2,7 @@
 Dual Approvals On Purchase ,Budget,Inventory, Asset, Sale , Accounting and visibility of Bom Cost and develpment of gate pass module and backdate entries module.
 
 ## Procrutment
-Developed Purchase Order (PO) Request system to manage procurement that enables users to create (PO) requests with details like products, quantities, vendors, featuring dynamic approval workflows. Users can assign multiple vendors per product, and the system intelligently groups lines to create a single RFQ for the same vendor across different or identical products. It automatically generates RFQs and includes a PDF report. it has modern Kanban views and  smart buttons to  view related purchase orders, RFQs, and approval requests.
+Developed Purchase Order (PO) Request system to manage procurement that enables users to create (PO) requests with details like products, quantities, vendors, featuring dynamic approval workflows. Users can assign multiple vendors per product, and the system intelligently groups lines to create a single RFQ for the same vendor across different or identical products. It automatically generates RFQs and includes a PDF report. it has modern Kanban views and  smart buttons to  view related purchase orders, RFQs, ,procurement  and  approval requests.
 
 
 ## Cost Sheet Builder

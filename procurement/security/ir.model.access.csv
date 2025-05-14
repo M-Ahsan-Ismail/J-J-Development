@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_po_request,po.request,model_po_request,,1,1,1,1
+access_po_request_line,po.request.line,model_po_request_line,,1,1,1,1
+access_rejection_wizard,rejection_wizard,model_rejection_wizard,,1,1,1,1

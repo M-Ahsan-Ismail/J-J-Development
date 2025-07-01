@@ -1,0 +1,40 @@
+<odoo>
+    <record id="generate_gate_pass_wizard_id" model="ir.ui.view">
+        <field name="name">Gate Pass</field>
+        <field name="model">gate.pass</field>
+        <field name="arch" type="xml">
+            <form string="Create Visitor Gate Pass">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="gate_pass_type" readonly="1"/>
+                            <field name="plot_no" invisible="gate_pass_type == 'outward'"/>
+                            <field name="driver_name"/>
+                            <field name="store_incharge_id"/>
+                            <field name="received_by"/>
+                            <field name="visit_date"/>
+                        </group>
+                        <group>
+                            <field name="vehicle_number"/>
+                            <field name="guard_id"/>
+                            <field name="created_by" readonly="1"/>
+                            <field name="company_id"/>
+                            <field name="visitor_purpose"/>
+                        </group>
+                    </group>
+                </sheet>
+                <footer>
+                    <button string="Create" name="create_visitor_info" type="object" class="oe_highlight"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="security_gate_pass_wizard_action" model="ir.actions.act_window">
+        <field name="name">Gate Pass</field>
+        <field name="res_model">gate.pass</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+</odoo>

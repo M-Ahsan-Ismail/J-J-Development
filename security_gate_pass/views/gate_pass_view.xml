@@ -1,0 +1,187 @@
+<odoo>
+    <data>
+
+        <record id="gate_pass_inward_sequence_id" model="ir.sequence">
+            <field name="name">Gate Pass Sequence</field>
+            <field name="code">gate.pass.inward</field>
+            <field name="prefix">IN</field>
+            <field name="padding">10</field>
+        </record>
+
+        <record id="gate_pass_outward_sequence_id" model="ir.sequence">
+            <field name="name">Gate Pass Sequence</field>
+            <field name="code">gate.pass.outward</field>
+            <field name="prefix">OUT</field>
+            <field name="padding">10</field>
+        </record>
+
+
+        <record id="visitor_information_form_view" model="ir.ui.view">
+            <field name="model">visitor.info</field>
+            <field name="name">visitor Info</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="action_view_related" type="object" class="oe_stat_button"
+                                    icon="fa-id-card">
+                                <div class="o_stat_info">
+                                    <field name="count_relevant_inventory" class="o_stat_value"/>
+                                    <span class="o_stat_text">Delivery/Receipt</span>
+                                </div>
+                            </button>
+                        </div>
+
+
+                        <div class="oe_title">
+                            <h1>
+                                <field name="sequence_gate_pass"/>
+                            </h1>
+                        </div>
+
+                        <group string="Label">
+                            <group class="col-12">
+                                <field string="Receipt No" readonly="1" name="label_type"
+                                       invisible="gate_pass_type == 'outward'"/>
+                                <field string="Delivery No" readonly="1" name="label_type"
+                                       invisible="gate_pass_type  == 'inward' "/>
+                            </group>
+                        </group>
+
+
+                        <group string="Driver Information">
+                            <group>
+                                <field name="gate_pass_type" invisible="1"/>
+                                <field name="plot_no" invisible="gate_pass_type == 'outward'"/>
+                                <field name="driver_name" readonly="1"/>
+                            </group>
+
+                            <group>
+                                <field name="visit_date" readonly="1"/>
+                                <field name="vehicle_number" readonly="1"/>
+                            </group>
+                        </group>
+
+
+                        <group string="Creator Information">
+                            <group>
+                                <field name="created_by" readonly="1"/>
+                                <field name="store_incharge_id" readonly="1"/>
+                                <field name="company_id"/>
+                            </group>
+                            <group>
+                                <field name="guard_id" readonly="1"/>
+                                <field name="received_by" readonly="1"/>
+                                <field name="visitor_purpose"/>
+                            </group>
+                        </group>
+
+
+                        <notebook>
+                            <page string="Operations">
+                                <field name="line_ids" widget="one2many">
+                                    <list delete="0" create="0" editable="bottom">
+                                        <field name="product_id" readonly="1"/>
+                                        <field name="product_uom" readonly="1"/>
+                                        <field name="qty" readonly="1"/>
+                                    </list>
+                                </field>
+                            </page>
+                        </notebook>
+                        <chatter/>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+
+        <record id="visitor_information_list_view" model="ir.ui.view">
+            <field name="model">visitor.info</field>
+            <field name="name">visitor Info</field>
+            <field name="arch" type="xml">
+                <list>
+                    <field name="driver_name"/>
+                    <field name="visit_date"/>
+                    <field name="vehicle_number"/>
+                    <field name="visitor_purpose"/>
+                </list>
+            </field>
+        </record>
+
+
+        <record id="action_visitor_info_inward" model="ir.actions.act_window">
+            <field name="name">Inward Gate Pass</field>
+            <field name="res_model">visitor.info</field>
+            <field name="view_mode">list,form</field>
+            <field name="domain">[('gate_pass_type', '=', 'inward')]</field>
+        </record>
+
+        <record id="action_visitor_info_outward" model="ir.actions.act_window">
+            <field name="name">Outward Gate Pass</field>
+            <field name="res_model">visitor.info</field>
+            <field name="view_mode">list,form</field>
+            <field name="domain">[('gate_pass_type', '=', 'outward')]</field>
+        </record>
+
+
+        <menuitem id="menu_visitor_info_id"
+                  name="Gate Pass Info"
+                  parent="stock.menu_stock_config_settings"
+                  sequence="101"/>
+
+        <menuitem id="menu_visitor_inward_id"
+                  name="Inward Pass"
+                  parent="menu_visitor_info_id"
+                  action="action_visitor_info_inward"
+                  sequence="1"/>
+
+        <menuitem id="menu_visitor_outward_id"
+                  name="Outward Pass"
+                  parent="menu_visitor_info_id"
+                  action="action_visitor_info_outward"
+                  sequence="2"/>
+    </data>
+
+
+    <data>
+        <record id="gate_pass_history_tree" model="ir.ui.view">
+            <field name="name">visitor.info.lines.list</field>
+            <field name="model">visitor.info.lines</field>
+            <field name="arch" type="xml">
+                <list string="_tree" create="false" edit="false" delete="false">
+                    <field name="visitor_id"/>
+                    <field name="product_id"/>
+                    <field name="product_uom"/>
+                    <field name="qty"/>
+                    <field name="gate_pass_type"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="gate_pass_history_pivot" model="ir.ui.view">
+			<field name="name">visitor.info.lines.pivot</field>
+            <field name="model">visitor.info.lines</field>
+			<field name="arch" type="xml">
+				<pivot string="Gate Pass History" sample="1">
+					<field name="gate_pass_type" type="col" />
+					<field name="product_id" type="row" />
+					<field name="qty" type="measure" invisible="1" />
+				</pivot>
+			</field>
+		</record>
+
+        <record id="action_visitor_info_history" model="ir.actions.act_window">
+            <field name="name">Gate Pass History</field>
+            <field name="res_model">visitor.info.lines</field>
+            <field name="view_mode">list,pivot</field>
+        </record>
+
+        <menuitem id="menu_visitor_history_id"
+                  name="Gate Pass History"
+                  parent="menu_visitor_info_id"
+                  action="action_visitor_info_history"
+                  sequence="3"/>
+    </data>
+
+
+</odoo>

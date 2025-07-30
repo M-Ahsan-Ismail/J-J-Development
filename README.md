@@ -16,6 +16,7 @@ Report showing the detais of cost sheet
 
 ## Gate Pass Module
 Developed the gate pass module on stock picking , having menus of inward pass  , outward pass in configuration uder label Gate Pass Info.
+Can create combine gatepass of multiple deliveries through server action.
 
 It tracks gate passes for stuff coming in or going out, shows driver and vehicle details. Each stock picking has a button to see related passes, each pass has a button for its picking, with product and quantity info. Reports show driver, vehicle, pass number, date, products, quantity, and signature lines.
 

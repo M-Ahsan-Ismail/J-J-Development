@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+        <!-- Define the QWeb Template for the Report -->
+        <template id="aging_report_doc">
+            <t t-call="web.html_container">
+
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <div class="row">
+                            <div class="col-4">
+                                <br/>
+                                <br/>
+                                <span
+                                        t-esc="context_timestamp(datetime.datetime.now()).strftime('%d-%m-%Y %H:%M %p')"/>
+                            </div>
+                            <div class="col-4">
+                                <h3 style="text-align: center; font-weight: bold;" t-if="report_type == 'payable'">
+                                    Unpaid Bills Detail</h3>
+                                <h3 style="text-align: center; font-weight: bold;" t-if="report_type == 'receivable'">
+                                    Unpaid Invoices
+                                    Detail</h3>
+                                <h3 style="text-align: center; font-weight: bold;" t-if="report_type == 'both'">Unpaid
+                                    Bills/Invoices
+                                    Detail</h3>
+                                <h4 style="text-align: center;">As of <t t-esc="date_as_of.strftime('%B %d, %Y')"/></h4>
+                            </div>
+                            <div class="col-4"/>
+                        </div>
+                        <table class="table table-condensed">
+                            <thead>
+                                <tr>
+                                    <th style="text-align: center;">Type</th>
+                                    <th style="text-align: center;">Date</th>
+                                    <th style="text-align: center;">Num</th>
+                                    <th style="text-align: center;">Memo</th>
+                                    <th style="text-align: center;">Aging</th>
+                                    <th style="text-align: right;">Open Balance</th>
+                                </tr>
+                            </thead>
+                            <t t-set="grand_total" t-value="0"/>
+                            <tbody>
+                                <t t-foreach="data" t-as="partner_name">
+                                    <t t-set="partner_data" t-value="data[partner_name]"/>
+                                    <tr>
+                                        <th colspan="6" style="text-align: center; border: 2px solid black;">
+                                            <h4 style="font-weight: bold;" t-esc="partner_name"/>
+                                        </th>
+                                    </tr>
+                                    <t t-foreach="partner_data" t-as="record">
+                                        <tr>
+                                            <td><t t-esc="record['type']"/></td>
+                                            <td style="text-align: center;"><t t-esc="record['date']"/></td>
+                                            <td><t t-esc="record['num']"/></td>
+                                            <td><t t-esc="record['memo']"/></td>
+                                            <td style="text-align: center;"><t t-esc="record['aging']"/></td>
+                                            <td style="text-align: right;"><t t-esc="record['open_balance']"
+                                                                              t-options="{'widget': 'float', 'precision': 2}"/></td>
+                                        </tr>
+                                    </t>
+                                    <tr t-if="report_type in ['payable', 'receivable']">
+                                        <td colspan="5"><strong>Total <t t-esc="partner_name"/></strong></td>
+                                        <td style="text-align: right;"><strong
+                                                t-esc="sum(r['open_balance'] for r in partner_data)"
+                                                t-options="{'widget': 'float', 'precision': 2}"/></td>
+                                        <t t-set="grand_total"
+                                           t-value="grand_total + sum(r['open_balance'] for r in partner_data)"/>
+                                    </tr>
+                                    <tr t-if="report_type == 'both'">
+                                        <td colspan="5"><strong>Payable Total <t t-esc="partner_name"/></strong></td>
+                                        <td style="text-align: right;">
+                                            <strong
+                                                    t-esc="sum(r['open_balance'] for r in partner_data if r['type'] == 'Bill')"
+                                                    t-options="{'widget': 'float', 'precision': 2}"/>
+                                        </td>
+                                        <!--                                        <t t-set="grand_total"-->
+                                        <!--                                           t-value="grand_total + sum(r['open_balance'] for r in partner_data)"/>-->
+                                    </tr>
+                                    <tr t-if="report_type == 'both'">
+                                        <td colspan="5"><strong>Receivable Total <t t-esc="partner_name"/></strong></td>
+                                        <td style="text-align: right;">
+                                            <strong
+                                                    t-esc="sum(r['open_balance'] for r in partner_data if r['type'] == 'Invoice')"
+                                                    t-options="{'widget': 'float', 'precision': 2}"/>
+                                        </td>
+                                        <!--                                        <t t-set="grand_total"-->
+                                        <!--                                           t-value="grand_total + sum(r['open_balance'] for r in partner_data)"/>-->
+                                    </tr>
+                                </t>
+                                <tr t-if="report_type in ['payable', 'receivable']">
+                                    <td colspan="5"><strong>Total</strong></td>
+                                    <td style="text-align: right;"><strong><t t-esc="grand_total"
+                                                                              t-options="{'widget': 'float', 'precision': 2}"/></strong></td>
+                                </tr>
+                            </tbody>
+
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </template>
+
+
+        <record id="paperformat_aging_reports" model="report.paperformat">
+            <field name="name">JNJ Aging Report</field>
+            <field name="default" eval="True"/>
+            <field name="format">A4</field>
+            <field name="orientation">Landscape</field>
+            <!--            <field name="page_height">0</field>-->
+            <!--            <field name="page_width">0</field>-->
+            <!--            <field name="margin_top">32</field>-->
+            <field name="margin_bottom">5</field>
+            <field name="margin_left">5</field>
+            <field name="margin_right">5</field>
+            <!--            <field name="header_spacing">30</field>-->
+            <!--            <field name="dpi">90</field>-->
+        </record>
+
+        <!-- Define the Report Action -->
+        <record id="action_aging_report" model="ir.actions.report">
+            <field name="name">JNJ Aging Report</field>
+            <field name="model">aging.report.wizard</field>
+            <field name="report_type">qweb-pdf</field>
+            <field name="report_name">jnj_aging_reports.aging_report_doc</field>
+            <field name="report_file">jnj_aging_reports.aging_report_doc</field>
+            <field name="binding_model_id" ref="model_aging_report_wizard"/>
+            <field name="binding_type">report</field>
+            <field name="paperformat_id" ref="jnj_aging_reports.paperformat_aging_reports"/>
+        </record>
+    </data>
+</odoo>

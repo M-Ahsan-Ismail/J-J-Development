@@ -157,7 +157,6 @@
                 </list>
             </field>
         </record>
-
         <record id="gate_pass_history_pivot" model="ir.ui.view">
 			<field name="name">visitor.info.lines.pivot</field>
             <field name="model">visitor.info.lines</field>
@@ -169,7 +168,6 @@
 				</pivot>
 			</field>
 		</record>
-
         <record id="action_visitor_info_history" model="ir.actions.act_window">
             <field name="name">Gate Pass History</field>
             <field name="res_model">visitor.info.lines</field>

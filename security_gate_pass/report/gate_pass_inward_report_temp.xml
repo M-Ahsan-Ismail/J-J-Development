@@ -3,11 +3,11 @@
     <template id="report_gate_pass_inward_template">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
-                <t t-call="web.external_layout">
+                <t t-call="web.basic_layout">
                     <div class="page">
                         <br/><br/>
                         <div class="col-12" style="text-align: center;">
-                            <h2>Inward Gatepass</h2>
+                            <h1>Inward Gatepass</h1>
                         </div>
 
                         <br/>
@@ -16,28 +16,6 @@
                                style="line-height:1.5;">
                             <tr>
                                 <th style="text-align: left; border: 1px solid black;">
-                                    <b>Plot No</b>
-                                </th>
-                                <th style="text-align: left; border: 1px solid black;">
-                                    <span t-esc="o.plot_no"/>
-                                </th>
-
-                                <th style="text-align: left; border: 1px solid black;">
-                                    <b>Gate Pass No.</b>
-                                </th>
-                                <th style="text-align: left; border: 1px solid black;">
-                                    <span t-esc="o.sequence_gate_pass"/>
-                                </th>
-                            </tr>
-                            <tr>
-                                <th style="text-align: left; border: 1px solid black;">
-                                    <b>Driver Name</b>
-                                </th>
-                                <th style="text-align: left; border: 1px solid black;">
-                                    <span t-esc="o.driver_name"/>
-                                </th>
-
-                                <th style="text-align: left; border: 1px solid black;">
                                     <b>Date</b>
                                 </th>
                                 <th style="text-align: left; border: 1px solid black;">
@@ -45,19 +23,43 @@
                                         <t t-esc="o.visit_date.strftime('%d-%m-%Y %H:%M:%S')"/>
                                     </t>
                                 </th>
+                                <th style="text-align: left; border: 1px solid black;">
+                                    <b>Party Name</b>
+                                </th>
+                                <th style="text-align: left; border: 1px solid black;">
+                                    <span>Party Name</span>
+                                </th>
+
                             </tr>
                             <tr>
+                                <th style="text-align: left; border: 1px solid black;">
+                                    <b>Gate Pass No.</b>
+                                </th>
+                                <th style="text-align: left; border: 1px solid black;">
+                                    <span t-esc="o.sequence_gate_pass"/>
+                                </th>
+
+
+                                <th style="text-align: left; border: 1px solid black;">
+                                    <b>Driver Name</b>
+                                </th>
+                                <th style="text-align: left; border: 1px solid black;">
+                                    <span t-esc="o.driver_name"/>
+                                </th>
+
+                            </tr>
+                            <tr>
+                                <th style="text-align: left; border: 1px solid black;">
+                                    <b></b>
+                                </th>
+                                <th style="text-align: left; border: 1px solid black;">
+                                    <span></span>
+                                </th>
                                 <th style="text-align: left; border: 1px solid black;">
                                     <b>Vehicle No</b>
                                 </th>
                                 <th style="text-align: left; border: 1px solid black;">
                                     <span t-esc="o.vehicle_number"/>
-                                </th>
-                                <th style="text-align: left; border: 1px solid black;">
-                                    <b>GRN No</b>
-                                </th>
-                                <th style="text-align: left; border: 1px solid black;">
-                                    <span t-esc="o.label_type"/>
                                 </th>
                             </tr>
                         </table>
@@ -97,7 +99,7 @@
                                     <td colspan="2" style="text-align: right;"><strong>Total</strong></td>
                                     <td style="text-align: center;"></td>
                                     <td style="text-align: right;"><strong t-esc="total_qty"
-                                                                      t-options="{'widget': 'float', 'precision': 2}"/></td>
+                                                                           t-options="{'widget': 'float', 'precision': 2}"/></td>
                                     <td style="text-align: center;"></td>
                                     <td style="text-align: center;"></td>
                                 </tr>
@@ -124,24 +126,24 @@
                             </div>
                             <div class="col-5">
                                 <div style="display: inline-block; border-bottom: 1px solid black; width: 250px; margin-bottom: 5px; text-align: left;"><t
-                                            t-esc="o.store_incharge_id.name"/></div>
+                                        t-esc="o.store_incharge_id.name"/></div>
                             </div>
                         </div>
                         <br/>
                         <div class="row">
                             <div class="col-2">
-                                <span><strong>Guard</strong></span>
+                                <span><strong>Gate Supervisor</strong></span>
                             </div>
                             <div class="col-5">
                                 <div style="display: inline-block; border-bottom: 1px solid black; width: 250px; margin-bottom: 5px; text-align: left;"><t
-                                            t-esc="o.guard_id.name"/></div>
+                                        t-esc="o.guard_id.name"/></div>
                             </div>
                             <div class="col-2">
                                 <span><strong>Received By</strong></span>
                             </div>
                             <div class="col-5">
                                 <div style="display: inline-block; border-bottom: 1px solid black; width: 250px; margin-bottom: 5px; text-align: left;">
-                                <t t-esc="o.received_by.name"/>
+                                    <t t-esc="o.received_by.name"/>
                                 </div>
                             </div>
                         </div>

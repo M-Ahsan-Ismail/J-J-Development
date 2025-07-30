@@ -3,36 +3,39 @@
     <template id="report_gate_pass_outward_template">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="o">
-                <t t-call="web.external_layout">
+                <t t-call="web.basic_layout">
                     <div class="page">
                         <br/><br/>
                         <div class="col-12" style="text-align: center;">
-                            <h2>Outward Gatepass</h2>
+                            <h1>Outward Gatepass</h1>
                         </div>
                         <br/>
-
-                        <table class="table-sm table-bordered" style="width: 100%; border-collapse: collapse; line-height: 1.5">
+                        <table class="table-sm table-bordered"
+                               style="width: 100%; border-collapse: collapse; line-height: 1.5">
                             <tr>
-                                <th style="width: 20%; text-align: left;"><strong>Driver Name</strong></th>
-                                <td style="width: 30%; border: 1px solid black;">
-                                    <t t-esc="o.driver_name"/>
-                                </td>
-                                <th style="width: 20%; text-align:left;"><strong>Gate Pass No.</strong></th>
-                                <td style="width: 30%; border: 1px solid black;">
-                                    <t t-esc="o.sequence_gate_pass"/>
-                                </td>
-                            </tr>
-                            <tr>
-                                <th style="text-align: left;"><strong>Vehicle No.</strong></th>
-                                <td style="border: 1px solid black;">
-                                    <t t-esc="o.vehicle_number"/>
-                                </td>
                                 <th style="text-align:left;"><strong>Date</strong></th>
                                 <td style="border: 1px solid black;">
                                     <t t-if="o.visit_date">
                                         <t t-esc="o.visit_date.strftime('%d-%m-%Y %H:%M:%S')"/>
                                     </t>
                                 </td>
+
+                                <th style="width: 20%; text-align: left;"><strong>Driver Name</strong></th>
+                                <td style="width: 30%; border: 1px solid black;">
+                                    <t t-esc="o.driver_name"/>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <th style="width: 20%; text-align:left;"><strong>Gate Pass No.</strong></th>
+                                <td style="width: 30%; border: 1px solid black;">
+                                    <t t-esc="o.sequence_gate_pass"/>
+                                </td>
+                                <th style="text-align: left;"><strong>Vehicle No.</strong></th>
+                                <td style="border: 1px solid black;">
+                                    <t t-esc="o.vehicle_number"/>
+                                </td>
+
                             </tr>
                         </table>
 
@@ -79,10 +82,9 @@
                             </tbody>
                         </table>
                         <br/><br/>
-
                         <div class="row">
                             <div class="col-2">
-                                <span><strong>Accounts:</strong></span>
+                                <span><strong>Prepared By:</strong></span>
                             </div>
                             <div class="col-5">
 
@@ -100,7 +102,7 @@
                         <br/>
                         <div class="row">
                             <div class="col-2">
-                                <span><strong>Guard</strong></span>
+                                <span><strong>Gate Supervisor</strong></span>
                             </div>
                             <div class="col-5">
                                 <div style="display: inline-block; border-bottom: 1px solid black; width: 250px; margin-bottom: 5px; text-align: left;"><t
@@ -115,7 +117,6 @@
                                 </div>
                             </div>
                         </div>
-
 
                     </div>
                 </t>

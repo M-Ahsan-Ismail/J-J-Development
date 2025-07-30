@@ -20,6 +20,12 @@ Can create combine gatepass of multiple deliveries through server action.
 
 It tracks gate passes for stuff coming in or going out, shows driver and vehicle details. Each stock picking has a button to see related passes, each pass has a button for its picking, with product and quantity info. Reports show driver, vehicle, pass number, date, products, quantity, and signature lines.
 
+
+## Aging Reports
+Developed a dynamic aging report for partners with future-dated bills or invoices, helping identify upcoming payables or receivables. Integrated the report into the Accounting > Reports menu, allowing users to filter by partner, date, and transaction type (Payable, Receivable, or Both).
+Grouped aging data is displayed per partner, showing due amounts, invoice numbers, and days outstanding.
+
+
 ## backdate_entries
 developed the module for adding sale order , manufacturing order , purchase order , inventory in previous dates , as system dont allow creating them in previous dates.
 

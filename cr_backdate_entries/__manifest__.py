@@ -2,11 +2,11 @@
     'name': 'Backdate Entries',
     'version': '18.0',
     'category': 'Extra Tools',
-    'author': "Ahsan",
-    'website': "ahsan-developer.netlify.app",
+    'author': "SuitePark Info Tech",
+    'website': "suitepark.com",
     'summary': 'The Backdate Entries module allows users to enter transactions on a date prior to the current date.',
     'depends': [
-        'stock','account','sale','purchase', 'mrp','stock', 'stock_account','account_accountant'
+        'stock','account','sale','purchase', 'mrp'
     ],
     'data': [
         'security/security.xml',

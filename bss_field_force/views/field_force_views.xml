@@ -1,0 +1,180 @@
+<odoo>
+    <odoo>
+        <!-- Sequence for Field Force -->
+        <record id="seq_field_force" model="ir.sequence">
+            <field name="name">Field Force Reference</field>
+            <field name="code">field.force.sequence</field>
+            <field name="prefix">FF%(y)s%(month)s-</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+    </odoo>
+
+
+    <!-- Form view -->
+    <record id="view_field_force_form" model="ir.ui.view">
+        <field name="name">field.force.form</field>
+        <field name="model">field.force</field>
+        <field name="arch" type="xml">
+            <form string="Internal Record(Admin View Only)">
+                <sheet>
+
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_view_related" type="object" class="oe_stat_button"
+                                icon="fa-road">
+                            <div class="o_stat_info">
+                                <field name="related_route_plan_count" class="o_stat_value"/>
+                                <span class="o_stat_text">Route Plans</span>
+                            </div>
+                        </button>
+                    </div>
+
+                    <div class="oe_title">
+                        <h1>
+                            <field name="name"/>
+                        </h1>
+                    </div>
+
+                    <group string="Partner Info">
+                        <group>
+                            <field name="partner_id" readonly="1"/>
+                            <field name="user_id" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="partner_address"/>
+                            <field name="total_time_spent"/>
+                        </group>
+                    </group>
+
+                    <group string="Check In Items">
+                        <group>
+                            <field name="action_check_in"/>
+                            <field name="check_in_time"/>
+                        </group>
+                        <group>
+                            <field name="latitude_in"/>
+                            <field name="longitude_in"/>
+                            <field name="check_in_address"/>
+                        </group>
+                    </group>
+
+                    <group string="Check Out Items">
+                        <group>
+                            <field name="action_check_out"/>
+                            <field name="check_out_time"/>
+                        </group>
+                        <group>
+                            <field name="latitude_out"/>
+                            <field name="longitude_out"/>
+                            <field name="check_out_address"/>
+                        </group>
+                    </group>
+
+
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- List view -->
+    <record id="view_field_force_tree" model="ir.ui.view">
+        <field name="name">field.force.list</field>
+        <field name="model">field.force</field>
+        <field name="arch" type="xml">
+            <list string="Field Force Records" default_order="create_date desc" create="false">
+
+                <!-- Salesperson with avatar -->
+                <field name="user_id" widget="many2one_avatar_user" string="Salesperson"/>
+
+                <!-- Customer as tag -->
+                <field name="partner_id" widget="many2one_avatar_user" string="Customer"/>
+
+                <!-- Total time spent as hours/min -->
+                <field name="total_time_spent" widget="float_time" string="Total Time"/>
+
+                <!-- Route plan as badge -->
+                <field name="route_plan_id" widget="badge" string="Route Plan"/>
+
+                <!-- Start Location -->
+                <field name="start_location" string="Start" widget="html"/>
+
+                <!-- End Location -->
+                <field name="end_location" string="End" widget="html"/>
+
+            </list>
+        </field>
+    </record>
+
+    <record id="view_field_force_kanban" model="ir.ui.view">
+        <field name="name">field.force.kanban</field>
+        <field name="model">field.force</field>
+        <field name="arch" type="xml">
+            <kanban class="o_kanban_view o_kanban_mobile o_kanban_small_column">
+                <field name="user_id"/>
+                <field name="route_plan_id"/>
+                <field name="partner_id"/>
+                <field name="total_time_spent"/>
+                <field name="start_location"/>
+                <field name="end_location"/>
+                <templates>
+                    <t t-name="kanban-box">
+                        <div class="oe_kanban_card oe_kanban_global_click rounded shadow-sm border-0 bg-white"
+                             style="min-height: 120px; backdrop-filter: blur(10px); transition: all 0.3s ease;">
+                            <div class="o_kanban_record_head p-3 border-bottom"
+                                 style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+                                <div class="d-flex align-items-center justify-content-between">
+                                    <div class="d-flex align-items-center">
+                                        <field name="user_id" widget="many2one_avatar_user"
+                                               options="{'no_create': True, 'no_open': True}" class="me-2"/>
+                                        <div>
+                                            <div class="fw-bold text-dark fs-6" style="line-height: 1.2;">
+                                                <field name="route_plan_id"/>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="o_kanban_record_body p-3">
+                                <div class="mb-3">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <i class="fa fa-user-circle text-primary me-2" style="font-size: 1.2em;"></i>
+                                        <small class="text-muted fw-semibold">Customer</small>
+                                    </div>
+                                    <field name="partner_id" widget="many2one_avatar_user"
+                                           options="{'no_create': True, 'no_open': True}" class="d-block"/>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="d-flex align-items-center mb-1">
+                                        <i class="fa fa-clock text-warning me-2" style="font-size: 1.2em;"></i>
+                                        <small class="text-muted fw-semibold">Time Spent</small>
+                                    </div>
+                                    <span class="fs-5 fw-bold text-dark">
+                                        <field name="total_time_spent" widget="float_time"/>
+                                    </span>
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                    <div class="text-center">
+                                        <i class="fa fa-map-marker-alt text-danger mb-1 d-block"
+                                           style="font-size: 1.5em;"></i>
+                                        <small class="text-muted d-block fw-semibold">
+                                            <field name="start_location" widget="html"/>
+                                        </small>
+                                    </div>
+                                    <div class="text-center">
+                                        <i class="fa fa-flag-checkered text-success mb-1 d-block"
+                                           style="font-size: 1.5em;"></i>
+                                        <small class="text-muted d-block fw-semibold">
+                                            <field name="end_location" widget="html"/>
+                                        </small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </t>
+                </templates>
+            </kanban>
+        </field>
+    </record>
+
+
+</odoo>

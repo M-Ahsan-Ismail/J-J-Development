@@ -1,0 +1,349 @@
+<odoo>
+    <template id="portal_attendance_page" name="Portal Attendance Page">
+        <t t-call="portal.portal_layout">
+            <t t-set="title">Field Force</t>
+            <div class="container my-4">
+                <div class="o_portal_attendance_widget">
+                    <!-- Header Section -->
+
+                    <div class="row">
+                        <div class="o_portal_page_header col-6">
+                            <h3 class="mb-0">Hi <t t-esc="user.name"/></h3>
+                            <p class="text-muted mb-0">Manage your customer visits</p>
+                        </div>
+                        <div class="col-6 d-flex justify-content-end align-items-center">
+                            <!-- Download PDF button -->
+                            <form t-att-action="'/route_plan/pdf/all'" method="get" style="margin:0;">
+                                <button type="submit"
+                                        class="btn bg-primary text-white px-4 py-2 d-flex align-items-center"
+                                        style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; font-weight: 500; letter-spacing: 0.5px;">
+                                    <i class="fa fa-download" style="margin-right: 0.25rem;"></i>
+                                    Routes Plan (PDF)
+                                </button>
+
+                            </form>
+                        </div>
+
+
+                    </div>
+
+
+                    <!-- CSRF token for fetch -->
+                    <input type="hidden" id="csrf_token" t-att-value="request.csrf_token()"/>
+
+                    <!-- Attendance Table Card -->
+                    <div class="card shadow-sm">
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0" id="attendanceTable">
+                                    <thead class="bg-primary text-white">
+                                        <tr>
+                                            <th class="text-center">#</th>
+                                            <th>Customer</th>
+                                            <th class="text-center">Address</th>
+                                            <th class="text-center">Notes/Desc</th>
+                                            <th class="text-center">Check In Time</th>
+                                            <th class="text-center">Check In (Loc)</th>
+                                            <th class="text-center">Check Out Time</th>
+                                            <th class="text-center">Check Out (Loc)</th>
+                                            <th class="text-center">Total Time</th>
+                                            <th class="text-center">Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="attendanceTableBody">
+                                        <t t-set="counter" t-value="0"/>
+                                        <t t-foreach="customers_list" t-as="c" t-key="c['customer_id']">
+                                            <t t-set="counter" t-value="counter + 1"/>
+                                            <tr class="attendance-row"
+                                                t-att-data-rec-id="c['id']"
+                                                t-att-data-partner-id="c['customer_id']"
+                                                t-att-data-partner-address="c['location']">
+
+                                                <td class="text-center">
+                                                    <span class="badge badge-pill badge-info">
+                                                        <t t-esc="counter"/>
+                                                    </span>
+                                                </td>
+                                                <td>
+                                                    <strong><t t-esc="c['customer_name']"/></strong>
+                                                </td>
+                                                <td class="text-center small text-muted">
+                                                    <t t-esc="c['location']"/>
+                                                </td>
+                                                <td class="text-center small text-muted">
+                                                    <t t-esc="c['notes']"/>
+                                                </td>
+
+                                                <td>
+                                                    <input type="text"
+                                                           class="form-control form-control-sm checkin-time border-0 bg-transparent"
+                                                           readonly="1"/>
+                                                </td>
+                                                <td>
+                                                    <input type="text"
+                                                           class="form-control form-control-sm checkin-loc border-0 bg-transparent small"
+                                                           readonly="1"/>
+                                                </td>
+
+                                                <td>
+                                                    <input type="text"
+                                                           class="form-control form-control-sm checkout-time border-0 bg-transparent"
+                                                           readonly="1"/>
+                                                </td>
+                                                <td>
+                                                    <input type="text"
+                                                           class="form-control form-control-sm checkout-loc border-0 bg-transparent small"
+                                                           readonly="1"/>
+                                                </td>
+
+                                                <td>
+                                                    <input type="text"
+                                                           class="form-control form-control-sm total-time border-0 bg-transparent font-weight-bold"
+                                                           readonly="1"/>
+                                                </td>
+                                                <td class="text-center">
+                                                    <div class="btn-group-vertical btn-group-sm" role="group">
+                                                        <button type="button"
+                                                                class="btn btn-success btn-sm o-btn-checkin mb-1">
+                                                            <i class="fa fa-sign-in mr-1"/>Check In
+                                                        </button>
+                                                        <button type="button"
+                                                                class="btn btn-danger btn-sm o-btn-checkout mb-1">
+                                                            <i class="fa fa-sign-out mr-1"/>Check Out
+                                                        </button>
+                                                        <button type="button"
+                                                                class="btn btn-primary btn-sm o-btn-post">
+                                                            <i class="fa fa-paper-plane mr-1"/>Post
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </t>
+                                    </tbody>
+                                </table>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Empty State (optional) -->
+                    <t t-if="not customers_list">
+                        <div class="alert alert-info text-center mt-3" role="alert">
+                            <i class="fa fa-info-circle fa-2x mb-2"/>
+                            <p class="mb-0">No customer visits scheduled.</p>
+                        </div>
+                    </t>
+                </div>
+            </div>
+
+            <script type="text/javascript">
+                document.addEventListener('DOMContentLoaded', function () {
+                    function nowISO() {
+                        return new Date().toISOString();
+                    }
+
+                    function nowLocalString() {
+                        return new Date().toLocaleString();
+                    }
+
+                    function reverseGeocode(lat, lon) {
+                        const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&amp;lat=${encodeURIComponent(lat)}&amp;lon=${encodeURIComponent(lon)}`;
+                        return fetch(url, {headers: {'User-Agent': 'odoo-portal-checkin/1.0'}})
+                                .then(r => r.ok ? r.json() : Promise.reject('nominatim'))
+                                .then(j => j.display_name || null)
+                                .catch(() => null);
+                    }
+
+                    // ---- Check In ----
+                    document.body.addEventListener('click', function (ev) {
+                        if (!ev.target.classList) return;
+                        if (ev.target.classList.contains('o-btn-checkin')) {
+                            const btn = ev.target;
+                            btn.disabled = true;
+                            const row = btn.closest('tr');
+                            const tField = row.querySelector('.checkin-time');
+                            const locField = row.querySelector('.checkin-loc');
+
+                            // 🔴 NEW: route.planing record id
+                            const recId = row.dataset.recId;
+
+                            // Call server to set state = in_process
+                            if (recId) {
+                                fetch('/portal/attendance/checkin_state', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRFToken': document.getElementById('csrf_token').value,
+                                    },
+                                    credentials: 'same-origin',
+                                    body: JSON.stringify({record_id: recId}),
+                                })
+                                        .then(r => r.json())
+                                        .then(j => {
+                                            if (j.success) {
+                                                console.log('State changed to in_process:', recId);
+                                            }
+                                        })
+                                        .catch(err => console.error('Error setting checkin state', err));
+                            }
+
+                            if (!navigator.geolocation) {
+                                alert('Geolocation not supported');
+                                btn.disabled = false;
+                                return;
+                            }
+                            navigator.geolocation.getCurrentPosition(async function (pos) {
+                                const lat = pos.coords.latitude, lon = pos.coords.longitude;
+                                tField.value = nowLocalString();
+                                row.dataset.lat_in = lat;
+                                row.dataset.lon_in = lon;
+                                row.dataset.checkin_time_iso = nowISO();
+                                const display = await reverseGeocode(lat, lon);
+                                locField.value = display || `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+                                btn.disabled = false;
+                            }, function (err) {
+                                alert('Unable to get location: ' + (err.message || err.code));
+                                btn.disabled = false;
+                            }, {enableHighAccuracy: true, timeout: 10000});
+                        }
+                    });
+
+                    // ---- Check Out ----
+                    document.body.addEventListener('click', function (ev) {
+                        if (!ev.target.classList) return;
+                        if (ev.target.classList.contains('o-btn-checkout')) {
+                            const btn = ev.target;
+                            btn.disabled = true;
+                            const row = btn.closest('tr');
+                            const tField = row.querySelector('.checkout-time');
+                            const locField = row.querySelector('.checkout-loc');
+                            const totalField = row.querySelector('.total-time');
+
+                            // 🔴 NEW: route.planing record id
+                            const recId = row.dataset.recId;
+
+                            // Call server to set state = complete
+                            if (recId) {
+                                fetch('/portal/attendance/checkout_state', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRFToken': document.getElementById('csrf_token').value,
+                                    },
+                                    credentials: 'same-origin',
+                                    body: JSON.stringify({record_id: recId}),
+                                })
+                                        .then(r => r.json())
+                                        .then(j => {
+                                            if (j.success) {
+                                                console.log('State changed to complete:', recId);
+                                            }
+                                        })
+                                        .catch(err => console.error('Error setting checkout state', err));
+                            }
+
+                            if (!navigator.geolocation) {
+                                alert('Geolocation not supported');
+                                btn.disabled = false;
+                                return;
+                            }
+                            navigator.geolocation.getCurrentPosition(async function (pos) {
+                                const lat = pos.coords.latitude, lon = pos.coords.longitude;
+                                const now = new Date();
+                                tField.value = now.toLocaleString();
+                                row.dataset.lat_out = lat;
+                                row.dataset.lon_out = lon;
+                                row.dataset.checkout_time_iso = now.toISOString();
+                                const display = await reverseGeocode(lat, lon);
+                                locField.value = display || `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+                                // compute total if checkin exists
+                                const checkinStr = row.querySelector('.checkin-time').value;
+                                if (checkinStr) {
+                                    const inDate = new Date(checkinStr);
+                                    if (!isNaN(inDate)) {
+                                        const diffMs = now - inDate;
+                                        const h = Math.floor(diffMs / 3600000);
+                                        const m = Math.floor((diffMs % 3600000) / 60000);
+                                        totalField.value = `${h}h ${m}m`;
+                                        row.dataset.total_seconds = Math.floor(diffMs / 1000);
+                                    }
+                                }
+                                btn.disabled = false;
+                            }, function (err) {
+                                alert('Unable to get location: ' + (err.message || err.code));
+                                btn.disabled = false;
+                            }, {enableHighAccuracy: true, timeout: 10000});
+                        }
+                    });
+
+                    // ---- POST ----
+                    document.body.addEventListener('click', function (ev) {
+                        if (!ev.target.classList) return;
+                        if (ev.target.classList.contains('o-btn-post')) {
+                            const btn = ev.target;
+                            const row = btn.closest('tr');
+                            const partnerId = row.dataset.partnerId || '';
+                            if (!partnerId) {
+                                alert('Missing partner id');
+                                return;
+                            }
+                            const payload = {
+                                post: true,
+                                partner_id: partnerId,
+                                partner_address: row.dataset.partnerAddress || '',
+                                route_plan_id: row.dataset.recId || '',
+                                latitude_in: row.dataset.lat_in || '',
+                                longitude_in: row.dataset.lon_in || '',
+                                latitude_out: row.dataset.lat_out || '',
+                                longitude_out: row.dataset.lon_out || '',
+                                check_in_time: row.dataset.checkin_time_iso || '',
+                                check_out_time: row.dataset.checkout_time_iso || '',
+                                check_in_loc: row.querySelector('.checkin-loc').value || '',
+                                check_out_loc: row.querySelector('.checkout-loc').value || ''
+                            };
+                            btn.disabled = true;
+                            btn.textContent = 'Saving...';
+                            const csrfToken = document.getElementById('csrf_token').value;
+                            fetch('/create/field/force/rec', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRFToken': csrfToken,
+                                },
+                                credentials: 'same-origin',
+                                body: JSON.stringify(payload),
+                            })
+                                    .then(r => r.json())
+                                    .then(data => {
+                                        if (data &amp;&amp; data.success) {
+                                            if (data.check_in &amp;&amp; data.check_in.time) row.querySelector('.checkin-time').value = data.check_in.time;
+                                            if (data.check_out &amp;&amp; data.check_out.time) row.querySelector('.checkout-time').value = data.check_out.time;
+                                            if (data.check_in &amp;&amp; data.check_in.address) row.querySelector('.checkin-loc').value = data.check_in.address;
+                                            if (data.check_out &amp;&amp; data.check_out.address) row.querySelector('.checkout-loc').value = data.check_out.address;
+                                            if (data.total_hours !== null &amp;&amp; data.total_hours !== undefined) {
+                                                row.querySelector('.total-time').value = (data.total_hours ? data.total_hours + 'h' : '');
+                                            }
+                                            btn.textContent = 'Posted';
+                                            btn.disabled = true;
+                                            row.querySelectorAll('.o-btn-checkin, .o-btn-checkout').forEach(b => b.disabled = true);
+                                        } else {
+                                            alert('Server error saving record');
+                                            btn.textContent = 'Post';
+                                            btn.disabled = false;
+                                        }
+                                    })
+                                    .catch(err => {
+                                        console.error('Save error', err);
+                                        alert('Network/server error saving record');
+                                        btn.textContent = 'Post';
+                                        btn.disabled = false;
+                                    });
+                        }
+                    });
+
+                }); // DOMContentLoaded
+            </script>
+
+        </t>
+    </template>
+</odoo>

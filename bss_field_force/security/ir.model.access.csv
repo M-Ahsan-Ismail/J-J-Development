@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_field_force,field.force,model_field_force,,1,1,1,1
+access_route_planing,route.planing,model_route_planing,,1,1,1,1
+access_planing_lines,planing.lines,model_planing_lines,,1,1,1,1

@@ -1,0 +1,93 @@
+<odoo>
+    <template id="report_route_planing_minimal">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page p-3">
+
+                        <!-- Header -->
+                        <div class="row mb-3">
+                            <div class="col-12 text-center">
+                                <h2>Route Planning Report</h2>
+                                <h3><t t-esc="doc.name"/></h3>
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-4">
+                                <span><strong>Salesperson:</strong> <t t-esc="doc.salesperson_id.name"/></span>
+                            </div>
+                            <div class="col-4"></div>
+                            <div class="col-4">
+                                <span><strong>Scheduled Date:</strong> <t
+                                        t-esc="doc.visit_time and doc.visit_time.strftime('%Y-%m-%d %H:%M') or '-'"/></span>
+                            </div>
+                        </div>
+                        <br/>
+                        <t t-if="doc.line_ids">
+                            <h5>Planning Lines</h5>
+                            <table class="table table-sm table-bordered">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th style="text-align: center;"><b>Visit Count</b></th>
+                                        <th style="text-align: center"><b>Customer</b></th>
+                                        <th style="text-align: center"><b>Address / Location</b></th>
+                                        <th style="text-align: center"><b>Scheduled Time</b></th>
+                                        <th style="text-align: center"><b>Note</b></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <t t-foreach="doc.line_ids" t-as="line">
+                                        <tr>
+                                            <td style="text-align: center"><t t-esc="line.visit_count"/></td>
+                                            <td style="text-align: left"><t t-esc="line.partner_id.name or '-'"/></td>
+                                            <td style="text-align: left"><t t-esc="line.partner_location or '-'"/></td>
+                                            <td style="text-align: center">
+                                                <t t-esc="line.time and line.time.strftime('%Y-%m-%d %H:%M') or '-'"/>
+                                            </td>
+                                            <td style="text-align: center"><t t-esc="line.note_desc or '-'"/></td>
+                                        </tr>
+                                    </t>
+                                </tbody>
+                            </table>
+                        </t>
+
+
+                        <t t-if="not doc.line_ids">
+                            <p>No planning lines found.</p>
+                        </t>
+
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- Paperformat -->
+    <record id="paper_format_route_planing" model="report.paperformat">
+        <field name="name">Route Planning Report Format</field>
+        <field name="default" eval="True"/>
+        <field name="format">A4</field>
+        <field name="orientation">Portrait</field>
+        <field name="margin_top">20</field>
+        <field name="margin_bottom">10</field>
+        <field name="margin_left">10</field>
+        <field name="margin_right">10</field>
+        <field name="dpi">90</field>
+    </record>
+
+    <!-- Report Action -->
+    <record id="action_report_route_planing" model="ir.actions.report">
+        <field name="name">Route Planning Report</field>
+        <field name="model">route.planing</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">bss_field_force.report_route_planing_minimal</field>
+        <field name="binding_model_id" ref="bss_field_force.model_route_planing"/>
+        <field name="binding_type">report</field>
+        <field name="paperformat_id" ref="bss_field_force.paper_format_route_planing"/>
+    </record>
+</odoo>
+
+
+
+

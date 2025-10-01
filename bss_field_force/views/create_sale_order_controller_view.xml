@@ -1,0 +1,236 @@
+<odoo>
+    <template id="create_sale_order_controller_id" name="Create Sale Order">
+        <t t-call="portal.portal_layout">
+            <t t-set="title">Create Sale Order</t>
+            <div class="container mt-5">
+                <div class="card shadow-lg rounded">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="mb-0"><i class="fa fa-shopping-cart me-2"></i>Create Sale Order</h3>
+                    </div>
+                    <div class="card-body">
+
+                        <!-- Error Message -->
+                        <t t-if="error_message">
+                            <div class="alert alert-danger mb-4">
+                                <i class="fa fa-exclamation-triangle me-2"></i>
+                                <t t-esc="error_message"/>
+                            </div>
+                        </t>
+
+                        <!-- Form Start -->
+                        <form action="/create/sale/order" method="post" class="needs-validation" novalidate="1">
+                            <input type="hidden" name="csrf_token" t-att-value="request.csrf_token()"/>
+
+                            <!-- Customer and Order Date -->
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="customer_id_input" class="form-label">Customer</label>
+                                    <select id="customer_id_input" name="customer_id" class="form-select" required="1">
+                                        <option value="">Select a Customer</option>
+                                        <t t-foreach="customer_list" t-as="c">
+                                            <option t-att-value="c['customer_id']"><t
+                                                    t-esc="c['customer_name']"/></option>
+                                        </t>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="date_order_input" class="form-label">Order Date</label>
+                                    <input type="datetime-local" id="date_order_input" name="date_order"
+                                           class="form-control" required="1"/>
+                                </div>
+                            </div>
+
+                            <!-- Hidden Product Options for JS -->
+                            <select id="productOptionsTemplate" class="d-none">
+                                <t t-foreach="product_list" t-as="p">
+                                    <option t-att-value="p['product_id']"><t t-esc="p['product_name']"/></option>
+                                </t>
+                            </select>
+
+                            <!-- Dynamic Product Lines Table -->
+                            <div class="table-responsive mb-3">
+                                <table class="table table-sm" id="orderLinesTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Product</th>
+                                            <th>Quantity</th>
+                                            <th>Price</th>
+                                            <th width="50px"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="orderLinesBody">
+                                        <tr class="order-line" data-index="0">
+                                            <td>
+                                                <select name="product_id_0" class="form-select" required="1">
+                                                    <option value="" disabled="1" selected="1">Select a product</option>
+                                                    <t t-foreach="product_list" t-as="p">
+                                                        <option t-att-value="p['product_id']"><t
+                                                                t-esc="p['product_name']"/></option>
+                                                    </t>
+                                                </select>
+                                            </td>
+                                            <td><input type="number" name="quantity_0" class="form-control" value="1"
+                                                       min="1"/></td>
+                                            <td><input type="number" name="price_0" class="form-control" value="0"
+                                                       min="0.01" step="0.01"/></td>
+                                            <td class="text-center">
+                                                <button type="button" class="btn btn-link text-danger remove-row"
+                                                        disabled="1">
+                                                    <i class="fa fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <button type="button" class="btn btn-link text-primary" onclick="addOrderLine()">
+                                    <i class="fa fa-plus me-1"></i>Add Product
+                                </button>
+                            </div>
+
+                            <!-- Submit Button -->
+                            <div class="text-end">
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="fa fa-plus me-1"></i>Create Order
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <t t-if="so_id">
+                    <!-- Bootstrap Modal -->
+                    <div class="modal fade" id="soCreatedModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content">
+                                <div class="modal-header bg-primary text-white">
+                                    <h5 class="modal-title">Sale Order Created!</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <p>Sale Order <strong>#<t t-esc="so_id"/></strong> has been successfully
+                                        created.</p>
+                                    <p>1. Check your order lines.<br/>2. Proceed to confirm the order.<br/>Thank
+                                        you!</p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">OK</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Trigger modal -->
+                    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+                    <script>
+                        var modalEl = document.getElementById('soCreatedModal');
+                        if (modalEl) {
+                            var modal = new bootstrap.Modal(modalEl);
+                            modal.show();
+                        }
+                    </script>
+                </t>
+
+
+            </div>
+
+            <script>
+                /* Make sure this variable is global in the template */
+                var orderLineCounter = 1;
+
+                /* Add a new order line by cloning the first (rendered) row */
+                function addOrderLine() {
+                    var tbody = document.getElementById('orderLinesBody');
+                    // Find the first template row to clone (assumes there is at least one row)
+                    var templateRow = document.querySelector('#orderLinesBody .order-line');
+                    if (!templateRow) return;
+
+                    // Deep clone the template row
+                    var newRow = templateRow.cloneNode(true);
+                    var idx = orderLineCounter++;
+
+                    // Set data-index
+                    newRow.setAttribute('data-index', idx);
+
+                    // Update each input/select inside the cloned row
+                    var elems = newRow.querySelectorAll('select, input');
+                    elems.forEach(function (el) {
+                        if (el.name) {
+                            if (/_\d+$/.test(el.name)) {
+                                el.name = el.name.replace(/_\d+$/, '_' + idx);
+                            } else {
+                                el.name = el.name + '_' + idx;
+                            }
+                        }
+                        // Update id similarly (if you used ids)
+                        if (el.id) {
+                            if (/_\d+$/.test(el.id)) {
+                                el.id = el.id.replace(/_\d+$/, '_' + idx);
+                            } else {
+                                el.id = el.id + '_' + idx;
+                            }
+                        }
+
+                        // Reset values for cloned fields (so user gets a clean row)
+                        if (el.tagName.toLowerCase() === 'select') {
+                            el.selectedIndex = 0;
+                        } else if (el.type === 'number') {
+                            // if it's quantity, set 1; price set 0 (adjust if your naming differs)
+                            if (/quantity_/.test(el.name)) {
+                                el.value = 1;
+                            } else if (/price_/.test(el.name)) {
+                                el.value = 0;
+                            } else {
+                                el.value = '';
+                            }
+                        } else {
+                            // other input types
+                            el.value = el.value || '';
+                        }
+                    });
+
+                    // Fix the remove button: enable it and set proper onclick handler
+                    var removeBtn = newRow.querySelector('.remove-row');
+                    if (removeBtn) {
+                        removeBtn.disabled = false;
+                        // detach any old onclick and bind new one
+                        removeBtn.onclick = function () {
+                            removeOrderLine(idx);
+                        };
+                    }
+
+                    // Append to tbody
+                    tbody.appendChild(newRow);
+
+                    // Update remove button states (disable when only 1 row)
+                    updateRemoveButtons();
+                }
+
+                /* Remove a row by index */
+                function removeOrderLine(index) {
+                    var row = document.querySelector('tr.order-line[data-index="' + index + '"]');
+                    if (row) row.parentNode.removeChild(row);
+                    updateRemoveButtons();
+                }
+
+                /* Disable remove button if only 1 row remains */
+                function updateRemoveButtons() {
+                    var rows = document.querySelectorAll('.order-line');
+                    Array.prototype.forEach.call(rows, function (r) {
+                        var btn = r.querySelector('.remove-row');
+                        if (btn) btn.disabled = rows.length &lt;= 1;
+                    });
+                }
+
+                /* Ensure initial row has the proper data-index = 0 and remove btn disabled */
+                document.addEventListener('DOMContentLoaded', function () {
+                    // Set initial row data-index to 0 if not present
+                    var first = document.querySelector('#orderLinesBody .order-line');
+                    if (first &amp;&amp; !first.getAttribute('data-index')) first.setAttribute('data-index', 0);
+                    updateRemoveButtons();
+                });
+            </script>
+
+        </t>
+    </template>
+</odoo>

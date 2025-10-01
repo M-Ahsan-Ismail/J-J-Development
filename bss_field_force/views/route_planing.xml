@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="seq_route_planing" model="ir.sequence">
+            <field name="name">Route Planning</field>
+            <field name="code">route.planing</field>
+            <field name="prefix">RP</field>
+            <field name="padding">4</field>
+            <field name="company_id" eval="False"/>
+        </record>
+
+        <record id="view_route_planing_form" model="ir.ui.view">
+            <field name="name">route.planing.form</field>
+            <field name="model">route.planing</field>
+            <field name="arch" type="xml">
+                <form string="Route Planning">
+                    <header>
+                        <button name="action_confirm" string="Confirm" type="object" class="btn-primary"
+                                invisible="state == 'confirm'"/>
+                        <button name="action_draft" string="Set to Draft" type="object" class="btn-secondary"
+                                invisible="state == 'draft'"/>
+                        <field name="state" widget="statusbar" statusbar_visible="draft,confirm,in_process,complete"/>
+                    </header>
+
+                    <sheet>
+                        <div class="oe_button_box" name="button_box">
+                            <button name="action_view_related" type="object" class="oe_stat_button"
+                                    icon="fa-map-marker">
+                                <div class="o_stat_info">
+                                    <field name="related_field_force_count" class="o_stat_value"/>
+                                    <span class="o_stat_text">Field Force</span>
+                                </div>
+                            </button>
+                        </div>
+
+                        <div class="oe_title">
+                            <h1>
+                                <field name="name"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="salesperson_id" widget="many2one" options="{'no_create': False}"
+                                       placeholder="Select Salesperson"/>
+                                <field name="visit_time" widget="datetime" placeholder="Visit Time"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Planning Lines">
+                                <field name="line_ids" widget="one2many">
+                                    <list editable="bottom">
+                                        <field name="visit_count" widget="integer"/>
+                                        <field name="partner_id" widget="many2one" options="{'no_create': False}"
+                                               domain="[('is_customer', '=', True)]"/>
+                                        <field name="partner_location" readonly="1"/>
+                                        <field name="time" widget="datetime"/>
+                                        <field name="note_desc" widget="char"/>
+                                    </list>
+                                </field>
+                            </page>
+                        </notebook>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_route_planing_list" model="ir.ui.view">
+            <field name="name">route.planing.list</field>
+            <field name="model">route.planing</field>
+            <field name="arch" type="xml">
+                <list string="Route Plans" class="o_list_view">
+                    <field name="name" string="Reference" widget="char" class="o_force_ltr"/>
+                    <field name="salesperson_id" string="Salesperson" widget="many2one_avatar_user"
+                           options="{'no_create': True, 'no_open': True}"/>
+                    <field name="visit_time" string="Scheduled Time" widget="date" class="o_force_ltr"
+                           options="{'format': 'MM/DD/YYYY HH:mm:ss'}"/>
+                    <field name="state" string="Status" widget="badge" options="{'clickable': True}"
+                           decoration-info="state=='draft'" decoration-success="state=='complete'"
+                           decoration-warning="state=='in_process'" decoration-primary="state=='confirm'"/>
+                    <field name="create_date" string="Created On" widget="date" class="o_force_ltr"
+                           options="{'format': 'MM/DD/YYYY HH:mm:ss'}"/>
+                </list>
+            </field>
+        </record>
+
+        <record id="view_route_planing_kanban" model="ir.ui.view">
+            <field name="name">route.planing.kanban</field>
+            <field name="model">route.planing</field>
+            <field name="arch" type="xml">
+                <kanban default_group_by="state" class="o_kanban_small_column" quick_create="false">
+                    <field name="name"/>
+                    <field name="salesperson_id"/>
+                    <field name="visit_time"/>
+                    <field name="state"/>
+                    <field name="create_date"/>
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div class="oe_kanban_global_click o_kanban_record_has_image_fill">
+                                <!-- Colored Top Bar based on State -->
+                                <div t-attf-class="ribbon ribbon-top-right #{record.state.raw_value == 'complete' ? 'ribbon-success' : record.state.raw_value == 'confirm' ? 'ribbon-primary' : record.state.raw_value == 'in_process' ? 'ribbon-warning' : 'ribbon-secondary'}">
+                                    <span><field name="state"/></span>
+                                </div>
+
+                                <div class="o_kanban_image_fill_left d-none d-md-block"
+                                     t-attf-style="background: linear-gradient(135deg, #{record.state.raw_value == 'complete' ? '#28a745' : record.state.raw_value == 'confirm' ? '#007bff' : record.state.raw_value == 'in_process' ? '#ffc107' : '#6c757d'} 0%, #{record.state.raw_value == 'complete' ? '#20c997' : record.state.raw_value == 'confirm' ? '#0056b3' : record.state.raw_value == 'in_process' ? '#ff9800' : '#495057'} 100%);">
+                                    <i t-attf-class="fa fa-3x text-white #{record.state.raw_value == 'complete' ? 'fa-check-circle' : record.state.raw_value == 'confirm' ? 'fa-thumbs-up' : record.state.raw_value == 'in_process' ? 'fa-hourglass-half' : 'fa-file-text-o'}"
+                                       style="opacity: 0.3; margin: 30px 0 0 15px;"/>
+                                </div>
+
+                                <div class="oe_kanban_details">
+                                    <!-- Header with Avatar -->
+                                    <div class="o_kanban_record_top">
+                                        <div class="o_kanban_record_headings">
+                                            <strong class="o_kanban_record_title">
+                                                <i class="fa fa-map-marker text-primary mr-1"/>
+                                                <field name="name"/>
+                                            </strong>
+                                        </div>
+                                        <div class="o_kanban_record_top_right">
+                                            <field name="salesperson_id" widget="many2one_avatar_user"
+                                                   options="{'display_avatar_name': False}"/>
+                                        </div>
+                                    </div>
+
+                                    <!-- Body Content -->
+                                    <div class="o_kanban_record_body mt-3">
+                                        <div class="row g-0 mb-2">
+                                            <div class="col-1 text-center">
+                                                <i class="fa fa-user-circle-o text-muted"/>
+                                            </div>
+                                            <div class="col-11">
+                                                <span class="text-muted small">Salesperson:</span><br/>
+                                                <strong><field name="salesperson_id" widget="many2one"/></strong>
+                                            </div>
+                                        </div>
+                                        <div class="row g-0 mb-2">
+                                            <div class="col-1 text-center">
+                                                <i class="fa fa-calendar text-info"/>
+                                            </div>
+                                            <div class="col-11">
+                                                <span class="text-muted small">Scheduled:</span><br/>
+                                                <strong class="text-info">
+                                                    <field name="visit_time" widget="datetime"/>
+                                                </strong>
+                                            </div>
+                                        </div>
+                                        <div class="row g-0">
+                                            <div class="col-1 text-center">
+                                                <i class="fa fa-clock-o text-warning"/>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Footer with Actions -->
+                                    <div class="o_kanban_record_bottom mt-3 pt-2"
+                                         style="border-top: 1px solid #dee2e6;">
+                                        <div class="oe_kanban_bottom_left">
+                                            <field name="state" widget="label_selection"
+                                                   options="{'classes': {'draft': 'secondary', 'confirm': 'primary', 'in_process': 'warning', 'complete': 'success'}}"/>
+                                        </div>
+                                        <div class="oe_kanban_bottom_right">
+                                            <button t-if="record.state.raw_value == 'draft'"
+                                                    name="action_confirm"
+                                                    type="object"
+                                                    class="btn btn-primary btn-sm shadow-sm">
+                                                <i class="fa fa-check-circle mr-1"/>Confirm
+                                            </button>
+                                            <button t-if="record.state.raw_value in ['confirm', 'in_process']"
+                                                    name="action_draft"
+                                                    type="object"
+                                                    class="btn btn-outline-secondary btn-sm">
+                                                <i class="fa fa-refresh mr-1"/>Reset
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+    </data>
+</odoo>

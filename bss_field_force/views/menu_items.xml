@@ -1,0 +1,107 @@
+<odoo>
+
+    <!-- Action for sales rep records -->
+    <record id="action_sales_rep" model="ir.actions.act_window">
+        <field name="name">Field Force</field>
+        <field name="res_model">field.force</field>
+        <field name="view_mode">list,kanban,form</field>
+        <field name="help">Here you can see private hidden records.</field>
+    </record>
+
+    <record id="action_partner_customers" model="ir.actions.act_window">
+        <field name="name">Customers</field>
+        <field name="res_model">res.partner</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('is_customer', '=', True)]</field>
+        <field name="context">{'create': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No customers found. Let's create one!
+            </p>
+        </field>
+    </record>
+
+
+    <record id="action_sales_orders" model="ir.actions.act_window">
+        <field name="name">Sales Orders</field>
+        <field name="res_model">sale.order</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="context">{'create': False}</field>
+        <field name="help" type="html"><p class="o_view_nocontent_smiling_face">
+            No sales orders found. Let's create
+            one! </p></field>
+    </record>
+
+    <record id="action_sales_man" model="ir.actions.act_window">
+        <field name="name">SalesMan</field>
+        <field name="res_model">hr.employee</field>
+        <field name="view_mode">kanban,list,form</field>
+        <field name="domain">[('is_sales_man', '=', True)]</field>
+        <field name="context">{'create': False}</field>
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">
+                No salesmen found. Let's create one!
+            </p>
+        </field>
+    </record>
+
+     <record id="route_planing_act_window" model="ir.actions.act_window">
+            <field name="name">Route Planing</field>
+            <field name="type">ir.actions.act_window</field>
+            <field name="res_model">route.planing</field>
+            <field name="view_mode">list,kanban,form</field>
+            <field name="help" type="html">
+                <p class="oe_view_nocontent_create">
+                    There is no routes planned click here to add new routes.
+                </p>
+            </field>
+        </record>
+
+    <!-- Menu item -->
+    <menuitem id="menu_sales_rep_root"
+              name="Field Force"
+              sequence="1"
+              web_icon="bss_field_force,static/description/icon.png"/>
+
+    <menuitem id="menu_sales_rep_child"
+              name="Sales Rep Records"
+              parent="menu_sales_rep_root"
+              action="action_sales_rep"
+              sequence="10"/>
+
+    <menuitem id="menu_route_plan_root"
+              name="Route Plan"
+              parent="menu_sales_rep_root"
+              action="action_sales_rep"
+              sequence="20"/>
+
+    <menuitem id="menu_planing_routes_child"
+              name="Planing"
+              parent="menu_route_plan_root"
+              action="route_planing_act_window"
+              sequence="21"/>
+
+    <menuitem id="menu_customers_child"
+              name="Customers"
+              parent="menu_route_plan_root"
+              action="action_partner_customers"
+              sequence="22"/>
+
+    <menuitem id="menu_sales_order_child"
+              name="Sales Order"
+              parent="menu_route_plan_root"
+              action="action_sales_orders"
+              sequence="23"/>
+
+    <menuitem id="menu_sales_root"
+              name="Sales"
+              parent="menu_sales_rep_root"
+              sequence="30"/>
+
+    <menuitem id="menu_sale_man_root"
+              name="SalesMan"
+              parent="menu_sales_root"
+              action="action_sales_man"
+              sequence="31"/>
+
+</odoo>

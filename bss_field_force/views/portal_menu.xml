@@ -1,0 +1,9 @@
+<odoo>
+    <template id="portal_attendance_menu" inherit_id="portal.portal_breadcrumbs" name="Attendance Menu">
+        <xpath expr="//ol" position="inside">
+            <li><a href="/my/attendance">My Attendance</a></li>
+        </xpath>
+    </template>
+</odoo>
+
+

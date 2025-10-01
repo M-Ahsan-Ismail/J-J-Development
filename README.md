@@ -1,7 +1,18 @@
 # J&J-Development
 Dual Approvals On Purchase ,Budget,Inventory, Asset, Sale , Accounting and visibility of Bom Cost and develpment of gate pass module and backdate entries module.
 
-## Procrutment
+
+## Field Force
+The Sales Manager/Supervisor creates a new route by adding planning lines (customers to visit, their locations, and expected visit times), then confirms the plan and assigns it to a specific Salesperson.
+
+The Salesperson logs into the portal to view their assigned routes, which display the list of customers to visit. When starting a visit, the salesperson clicks Check-In, and the system automatically captures the time and location, moving the Route Plan into the In Process state. Upon reaching the customer and completing the visit, the salesperson clicks Check-Out, again capturing the time and location, which updates the Route Plan to the Complete state. By clicking the Post button, the salesperson can then submit the completed record. PDF report of the planned  visits can  be downloaded.
+
+The Route Plan and related Field Force records are connected through smart buttons for easy navigation between linked data.
+
+
+
+
+## Procurement
 Developed Purchase Order (PO) Request system to manage procurement that enables users to create (PO) requests with details like products, quantities, vendors, featuring dynamic approval workflows. Users can assign multiple vendors per product, and the system intelligently groups lines to create a single RFQ for the same vendor across different or identical products. It automatically generates RFQs and includes a PDF report. it has modern Kanban views and  smart buttons to  view related purchase orders, RFQs, ,procurement  and  approval requests.
 
 

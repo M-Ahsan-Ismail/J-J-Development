@@ -1,7 +1,12 @@
 import re
 import odoo
-from odoo import http, fields
+from odoo import http, fields, models
 from odoo.http import request
+
+
+class SaleOrderInherit(models.Model):
+    _inherit = 'sale.order'
+    is_portal_sale_order = fields.Boolean(string='Portal Sale Order')
 
 
 class CreateSaleOrderController(http.Controller):
@@ -75,6 +80,7 @@ class CreateSaleOrderController(http.Controller):
 
                 # Create Sale Order
                 sale_order_id = request.env['sale.order'].sudo().create({
+                    'is_portal_sale_order': True,
                     'partner_id': customer_id,
                     'date_order': date_order,
                     'order_line': order_lines,

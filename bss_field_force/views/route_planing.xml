@@ -53,7 +53,8 @@
                                         <field name="partner_id" widget="many2one" options="{'no_create': False}"
                                                domain="[('is_customer', '=', True)]"/>
                                         <field name="partner_location" readonly="1"/>
-                                        <field name="time" widget="datetime"/>
+                                        <field name="is_check_in" widget="boolean_icon"/>
+                                        <field name="is_check_out" widget="boolean_icon"/>
                                         <field name="note_desc" widget="char"/>
                                     </list>
                                 </field>

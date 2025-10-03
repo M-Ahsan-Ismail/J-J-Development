@@ -24,7 +24,11 @@ class RoutePlaning(models.Model):
         default='draft'
     )
 
-    field_force_id = fields.Many2one('field.force', 'Field Force ID')
+    # field_force_id = fields.Many2one('field.force', 'Field Force ID')
+    # route.planing
+    field_force_ids = fields.One2many('field.force', 'route_plan_id', string='Field Forces')
+
+    # remove field_force_id = fields.Many2one(...)
 
     line_ids = fields.One2many('planing.lines', 'route_planing_id', string='Planning Lines')
 
@@ -43,10 +47,10 @@ class RoutePlaning(models.Model):
     related_field_force_count = fields.Integer('Count of Field Force', compute='_compute_relevant_field_force',
                                                store=True)
 
-    @api.depends('field_force_id')
+    @api.depends('field_force_ids')
     def _compute_relevant_field_force(self):
         for x in self:
-            x.related_field_force_count = len(x.field_force_id)
+            x.related_field_force_count = len(x.field_force_ids)
 
     def action_view_related(self):
         return {
@@ -68,7 +72,8 @@ class PlaningLines(models.Model):
     visit_count = fields.Integer('Visit Count', readonly=True, store=True)
     partner_id = fields.Many2one('res.partner', string='Customer', domain=[('is_customer', '=', True)])
     partner_location = fields.Char('Address/Location', readonly=True, store=True)
-    time = fields.Datetime('Scheduled Time')
+    is_check_in = fields.Boolean('Check-In', readonly=True)
+    is_check_out = fields.Boolean('Check-Out', readonly=True)
     note_desc = fields.Char('Note Description')
 
     @api.onchange('partner_id')

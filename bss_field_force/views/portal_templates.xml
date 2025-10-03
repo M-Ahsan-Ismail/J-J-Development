@@ -27,7 +27,6 @@
 
                     </div>
 
-
                     <!-- CSRF token for fetch -->
                     <input type="hidden" id="csrf_token" t-att-value="request.csrf_token()"/>
 
@@ -55,9 +54,10 @@
                                         <t t-foreach="customers_list" t-as="c" t-key="c['customer_id']">
                                             <t t-set="counter" t-value="counter + 1"/>
                                             <tr class="attendance-row"
-                                                t-att-data-rec-id="c['id']"
+                                                t-att-data-rec-id="c['route_id']"
                                                 t-att-data-partner-id="c['customer_id']"
-                                                t-att-data-partner-address="c['location']">
+                                                t-att-data-partner-address="c['location']"
+                                                t-att-data-field-force-id="c.get('field_force_id') or ''">
 
                                                 <td class="text-center">
                                                     <span class="badge badge-pill badge-info">
@@ -77,30 +77,37 @@
                                                 <td>
                                                     <input type="text"
                                                            class="form-control form-control-sm checkin-time border-0 bg-transparent"
-                                                           readonly="1"/>
+                                                           readonly="1"
+                                                           t-att-value="c.get('check_in_time') or ''"/>
                                                 </td>
                                                 <td>
                                                     <input type="text"
                                                            class="form-control form-control-sm checkin-loc border-0 bg-transparent small"
-                                                           readonly="1"/>
+                                                           readonly="1"
+                                                           t-att-value="c.get('check_in_address') or ''"/>
                                                 </td>
 
                                                 <td>
                                                     <input type="text"
                                                            class="form-control form-control-sm checkout-time border-0 bg-transparent"
-                                                           readonly="1"/>
+                                                           readonly="1"
+                                                           t-att-value="c.get('check_out_time') or ''"/>
                                                 </td>
                                                 <td>
                                                     <input type="text"
                                                            class="form-control form-control-sm checkout-loc border-0 bg-transparent small"
-                                                           readonly="1"/>
+                                                           readonly="1"
+                                                           t-att-value="c.get('check_out_address') or ''"/>
                                                 </td>
 
                                                 <td>
                                                     <input type="text"
                                                            class="form-control form-control-sm total-time border-0 bg-transparent font-weight-bold"
-                                                           readonly="1"/>
+                                                           readonly="1"
+                                                           t-att-value="c.get('total_time_spent') or ''"/>
                                                 </td>
+
+
                                                 <td class="text-center">
                                                     <div class="btn-group-vertical btn-group-sm" role="group">
                                                         <button type="button"
@@ -163,35 +170,15 @@
                             const row = btn.closest('tr');
                             const tField = row.querySelector('.checkin-time');
                             const locField = row.querySelector('.checkin-loc');
-
-                            // 🔴 NEW: route.planing record id
-                            const recId = row.dataset.recId;
-
-                            // Call server to set state = in_process
-                            if (recId) {
-                                fetch('/portal/attendance/checkin_state', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'X-CSRFToken': document.getElementById('csrf_token').value,
-                                    },
-                                    credentials: 'same-origin',
-                                    body: JSON.stringify({record_id: recId}),
-                                })
-                                        .then(r => r.json())
-                                        .then(j => {
-                                            if (j.success) {
-                                                console.log('State changed to in_process:', recId);
-                                            }
-                                        })
-                                        .catch(err => console.error('Error setting checkin state', err));
-                            }
+                            const partnerId = row.dataset.partnerId;
+                            const routeId = row.dataset.recId;
 
                             if (!navigator.geolocation) {
                                 alert('Geolocation not supported');
                                 btn.disabled = false;
                                 return;
                             }
+
                             navigator.geolocation.getCurrentPosition(async function (pos) {
                                 const lat = pos.coords.latitude, lon = pos.coords.longitude;
                                 tField.value = nowLocalString();
@@ -200,15 +187,48 @@
                                 row.dataset.checkin_time_iso = nowISO();
                                 const display = await reverseGeocode(lat, lon);
                                 locField.value = display || `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+
+                                // 🔴 Auto-post IN record
+                                const payload = {
+                                    post: true,
+                                    partner_id: partnerId,
+                                    route_plan_id: routeId,
+                                    latitude_in: lat,
+                                    longitude_in: lon,
+                                    check_in_time: row.dataset.checkin_time_iso,
+                                    check_in_loc: locField.value
+                                };
+                                const csrfToken = document.getElementById('csrf_token').value;
+                                fetch('/create/field/force/rec', {
+                                    method: 'POST',
+                                    headers: {'Content-Type': 'application/json', 'X-CSRFToken': csrfToken},
+                                    credentials: 'same-origin',
+                                    body: JSON.stringify(payload),
+                                })
+                                        .then(r => r.json())
+                                        .then(data => {
+                                            if (data &amp;&amp; data.success) {
+                                                row.dataset.fieldForceId = data.id; // save created record id
+                                                console.log('Checkin auto-posted', data.id);
+                                            } else {
+                                                alert('Error saving checkin record');
+                                            }
+                                        })
+                                        .catch(err => {
+                                            console.error('Checkin save error', err);
+                                        });
+
                                 btn.disabled = false;
                             }, function (err) {
                                 alert('Unable to get location: ' + (err.message || err.code));
                                 btn.disabled = false;
-                            }, {enableHighAccuracy: true, timeout: 10000});
+                            }, {enableHighAccuracy: true, timeout: 30000, maximumAge: 0});
                         }
                     });
 
                     // ---- Check Out ----
+                    // ---- Check Out ----
+                    // inside DOMContentLoaded: replace checkout handler with this
                     document.body.addEventListener('click', function (ev) {
                         if (!ev.target.classList) return;
                         if (ev.target.classList.contains('o-btn-checkout')) {
@@ -218,35 +238,16 @@
                             const tField = row.querySelector('.checkout-time');
                             const locField = row.querySelector('.checkout-loc');
                             const totalField = row.querySelector('.total-time');
-
-                            // 🔴 NEW: route.planing record id
-                            const recId = row.dataset.recId;
-
-                            // Call server to set state = complete
-                            if (recId) {
-                                fetch('/portal/attendance/checkout_state', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'X-CSRFToken': document.getElementById('csrf_token').value,
-                                    },
-                                    credentials: 'same-origin',
-                                    body: JSON.stringify({record_id: recId}),
-                                })
-                                        .then(r => r.json())
-                                        .then(j => {
-                                            if (j.success) {
-                                                console.log('State changed to complete:', recId);
-                                            }
-                                        })
-                                        .catch(err => console.error('Error setting checkout state', err));
-                            }
+                            const routeId = row.dataset.recId || '';
+                            const fieldForceId = row.dataset.fieldForceId || '';
+                            const partnerId = row.dataset.partnerId || '';
 
                             if (!navigator.geolocation) {
                                 alert('Geolocation not supported');
                                 btn.disabled = false;
                                 return;
                             }
+
                             navigator.geolocation.getCurrentPosition(async function (pos) {
                                 const lat = pos.coords.latitude, lon = pos.coords.longitude;
                                 const now = new Date();
@@ -254,21 +255,54 @@
                                 row.dataset.lat_out = lat;
                                 row.dataset.lon_out = lon;
                                 row.dataset.checkout_time_iso = now.toISOString();
+
                                 const display = await reverseGeocode(lat, lon);
                                 locField.value = display || `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
-                                // compute total if checkin exists
-                                const checkinStr = row.querySelector('.checkin-time').value;
-                                if (checkinStr) {
-                                    const inDate = new Date(checkinStr);
-                                    if (!isNaN(inDate)) {
-                                        const diffMs = now - inDate;
-                                        const h = Math.floor(diffMs / 3600000);
-                                        const m = Math.floor((diffMs % 3600000) / 60000);
-                                        totalField.value = `${h}h ${m}m`;
-                                        row.dataset.total_seconds = Math.floor(diffMs / 1000);
-                                    }
-                                }
-                                btn.disabled = false;
+
+                                // Build payload: include specific field_force_id if we have it
+                                const payload = {
+                                    record_id: routeId,
+                                    partner_id: partnerId,
+                                    latitude_out: lat,
+                                    longitude_out: lon,
+                                    check_out_time: row.dataset.checkout_time_iso,
+                                    check_out_loc: locField.value
+                                };
+                                if (fieldForceId) payload.field_force_id = fieldForceId;
+
+                                const csrfToken = document.getElementById('csrf_token').value;
+                                fetch('/update/field/force/rec', {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'X-CSRFToken': csrfToken,
+                                    },
+                                    credentials: 'same-origin',
+                                    body: JSON.stringify(payload),
+                                })
+                                        .then(r => r.json())
+                                        .then(j => {
+                                            if (j.success) {
+                                                console.log('Checkout complete for route:', j.route_id, 'ff:', j.field_force_id);
+                                                // update UI with server-provided check_out data if returned:
+                                                if (j.check_out &amp;&amp; j.check_out.time) row.querySelector('.checkout-time').value = j.check_out.time;
+                                                if (j.check_out &amp;&amp; j.check_out.address) row.querySelector('.checkout-loc').value = j.check_out.address;
+                                                if (j.total_hours !== undefined &amp;&amp; j.total_hours !== null) {
+                                                    row.querySelector('.total-time').value = (j.total_hours ? j.total_hours + 'h' : '');
+                                                }
+                                                // disable buttons (optional)
+                                                row.querySelectorAll('.o-btn-checkin, .o-btn-checkout').forEach(b => b.disabled = true);
+                                            } else {
+                                                alert('Error updating checkout: ' + (j.error || 'server error'));
+                                            }
+                                        })
+                                        .catch(err => {
+                                            console.error('Checkout error', err);
+                                            alert('Network/server error saving checkout');
+                                        })
+                                        .finally(() => {
+                                            btn.disabled = false;
+                                        });
                             }, function (err) {
                                 alert('Unable to get location: ' + (err.message || err.code));
                                 btn.disabled = false;
@@ -276,74 +310,220 @@
                         }
                     });
 
-                    // ---- POST ----
-                    document.body.addEventListener('click', function (ev) {
-                        if (!ev.target.classList) return;
-                        if (ev.target.classList.contains('o-btn-post')) {
-                            const btn = ev.target;
-                            const row = btn.closest('tr');
-                            const partnerId = row.dataset.partnerId || '';
-                            if (!partnerId) {
-                                alert('Missing partner id');
-                                return;
-                            }
-                            const payload = {
-                                post: true,
-                                partner_id: partnerId,
-                                partner_address: row.dataset.partnerAddress || '',
-                                route_plan_id: row.dataset.recId || '',
-                                latitude_in: row.dataset.lat_in || '',
-                                longitude_in: row.dataset.lon_in || '',
-                                latitude_out: row.dataset.lat_out || '',
-                                longitude_out: row.dataset.lon_out || '',
-                                check_in_time: row.dataset.checkin_time_iso || '',
-                                check_out_time: row.dataset.checkout_time_iso || '',
-                                check_in_loc: row.querySelector('.checkin-loc').value || '',
-                                check_out_loc: row.querySelector('.checkout-loc').value || ''
-                            };
-                            btn.disabled = true;
-                            btn.textContent = 'Saving...';
-                            const csrfToken = document.getElementById('csrf_token').value;
-                            fetch('/create/field/force/rec', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'X-CSRFToken': csrfToken,
-                                },
-                                credentials: 'same-origin',
-                                body: JSON.stringify(payload),
-                            })
-                                    .then(r => r.json())
-                                    .then(data => {
-                                        if (data &amp;&amp; data.success) {
-                                            if (data.check_in &amp;&amp; data.check_in.time) row.querySelector('.checkin-time').value = data.check_in.time;
-                                            if (data.check_out &amp;&amp; data.check_out.time) row.querySelector('.checkout-time').value = data.check_out.time;
-                                            if (data.check_in &amp;&amp; data.check_in.address) row.querySelector('.checkin-loc').value = data.check_in.address;
-                                            if (data.check_out &amp;&amp; data.check_out.address) row.querySelector('.checkout-loc').value = data.check_out.address;
-                                            if (data.total_hours !== null &amp;&amp; data.total_hours !== undefined) {
-                                                row.querySelector('.total-time').value = (data.total_hours ? data.total_hours + 'h' : '');
-                                            }
-                                            btn.textContent = 'Posted';
-                                            btn.disabled = true;
-                                            row.querySelectorAll('.o-btn-checkin, .o-btn-checkout').forEach(b => b.disabled = true);
-                                        } else {
-                                            alert('Server error saving record');
-                                            btn.textContent = 'Post';
-                                            btn.disabled = false;
-                                        }
-                                    })
-                                    .catch(err => {
-                                        console.error('Save error', err);
-                                        alert('Network/server error saving record');
-                                        btn.textContent = 'Post';
-                                        btn.disabled = false;
-                                    });
-                        }
-                    });
 
                 }); // DOMContentLoaded
             </script>
-
         </t>
     </template>
 </odoo>
+
+
+        <!--            <script type="text/javascript">-->
+        <!--                document.addEventListener('DOMContentLoaded', function () {-->
+        <!--                    function nowISO() {-->
+        <!--                        return new Date().toISOString();-->
+        <!--                    }-->
+
+        <!--                    function nowLocalString() {-->
+        <!--                        return new Date().toLocaleString();-->
+        <!--                    }-->
+
+        <!--                    function reverseGeocode(lat, lon) {-->
+        <!--                        const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&amp;lat=${encodeURIComponent(lat)}&amp;lon=${encodeURIComponent(lon)}`;-->
+        <!--                        return fetch(url, {headers: {'User-Agent': 'odoo-portal-checkin/1.0'}})-->
+        <!--                                .then(r => r.ok ? r.json() : Promise.reject('nominatim'))-->
+        <!--                                .then(j => j.display_name || null)-->
+        <!--                                .catch(() => null);-->
+        <!--                    }-->
+
+        <!--                    // &#45;&#45;&#45;&#45; Check In &#45;&#45;&#45;&#45;-->
+        <!--                    document.body.addEventListener('click', function (ev) {-->
+        <!--                        if (!ev.target.classList) return;-->
+        <!--                        if (ev.target.classList.contains('o-btn-checkin')) {-->
+        <!--                            const btn = ev.target;-->
+        <!--                            btn.disabled = true;-->
+        <!--                            const row = btn.closest('tr');-->
+        <!--                            const tField = row.querySelector('.checkin-time');-->
+        <!--                            const locField = row.querySelector('.checkin-loc');-->
+
+        <!--                            // 🔴 NEW: route.planing record id-->
+        <!--                            const recId = row.dataset.recId;-->
+
+        <!--                            // Call server to set state = in_process-->
+        <!--                            if (recId) {-->
+        <!--                                fetch('/portal/attendance/checkin_state', {-->
+        <!--                                    method: 'POST',-->
+        <!--                                    headers: {-->
+        <!--                                        'Content-Type': 'application/json',-->
+        <!--                                        'X-CSRFToken': document.getElementById('csrf_token').value,-->
+        <!--                                    },-->
+        <!--                                    credentials: 'same-origin',-->
+        <!--                                    body: JSON.stringify({record_id: recId}),-->
+        <!--                                })-->
+        <!--                                        .then(r => r.json())-->
+        <!--                                        .then(j => {-->
+        <!--                                            if (j.success) {-->
+        <!--                                                console.log('State changed to in_process:', recId);-->
+        <!--                                            }-->
+        <!--                                        })-->
+        <!--                                        .catch(err => console.error('Error setting checkin state', err));-->
+        <!--                            }-->
+
+        <!--                            if (!navigator.geolocation) {-->
+        <!--                                alert('Geolocation not supported');-->
+        <!--                                btn.disabled = false;-->
+        <!--                                return;-->
+        <!--                            }-->
+        <!--                            navigator.geolocation.getCurrentPosition(async function (pos) {-->
+        <!--                                        const lat = pos.coords.latitude, lon = pos.coords.longitude;-->
+        <!--                                        tField.value = nowLocalString();-->
+        <!--                                        row.dataset.lat_in = lat;-->
+        <!--                                        row.dataset.lon_in = lon;-->
+        <!--                                        row.dataset.checkin_time_iso = nowISO();-->
+        <!--                                        const display = await reverseGeocode(lat, lon);-->
+        <!--                                        locField.value = display || `${lat.toFixed(6)}, ${lon.toFixed(6)}`;-->
+        <!--                                        btn.disabled = false;-->
+        <!--                                    }, function (err) {-->
+        <!--                                        alert('Unable to get location: ' + (err.message || err.code));-->
+        <!--                                        btn.disabled = false;-->
+        <!--                                    }, {enableHighAccuracy: true, timeout: 30000, maximumAge: 0}-->
+        <!--                            );-->
+        <!--                        }-->
+        <!--                    });-->
+
+        <!--                    // &#45;&#45;&#45;&#45; Check Out &#45;&#45;&#45;&#45;-->
+        <!--                    document.body.addEventListener('click', function (ev) {-->
+        <!--                        if (!ev.target.classList) return;-->
+        <!--                        if (ev.target.classList.contains('o-btn-checkout')) {-->
+        <!--                            const btn = ev.target;-->
+        <!--                            btn.disabled = true;-->
+        <!--                            const row = btn.closest('tr');-->
+        <!--                            const tField = row.querySelector('.checkout-time');-->
+        <!--                            const locField = row.querySelector('.checkout-loc');-->
+        <!--                            const totalField = row.querySelector('.total-time');-->
+
+        <!--                            // 🔴 NEW: route.planing record id-->
+        <!--                            const recId = row.dataset.recId;-->
+
+        <!--                            // Call server to set state = complete-->
+        <!--                            if (recId) {-->
+        <!--                                fetch('/portal/attendance/checkout_state', {-->
+        <!--                                    method: 'POST',-->
+        <!--                                    headers: {-->
+        <!--                                        'Content-Type': 'application/json',-->
+        <!--                                        'X-CSRFToken': document.getElementById('csrf_token').value,-->
+        <!--                                    },-->
+        <!--                                    credentials: 'same-origin',-->
+        <!--                                    body: JSON.stringify({record_id: recId}),-->
+        <!--                                })-->
+        <!--                                        .then(r => r.json())-->
+        <!--                                        .then(j => {-->
+        <!--                                            if (j.success) {-->
+        <!--                                                console.log('State changed to complete:', recId);-->
+        <!--                                            }-->
+        <!--                                        })-->
+        <!--                                        .catch(err => console.error('Error setting checkout state', err));-->
+        <!--                            }-->
+
+        <!--                            if (!navigator.geolocation) {-->
+        <!--                                alert('Geolocation not supported');-->
+        <!--                                btn.disabled = false;-->
+        <!--                                return;-->
+        <!--                            }-->
+        <!--                            navigator.geolocation.getCurrentPosition(async function (pos) {-->
+        <!--                                const lat = pos.coords.latitude, lon = pos.coords.longitude;-->
+        <!--                                const now = new Date();-->
+        <!--                                tField.value = now.toLocaleString();-->
+        <!--                                row.dataset.lat_out = lat;-->
+        <!--                                row.dataset.lon_out = lon;-->
+        <!--                                row.dataset.checkout_time_iso = now.toISOString();-->
+        <!--                                const display = await reverseGeocode(lat, lon);-->
+        <!--                                locField.value = display || `${lat.toFixed(6)}, ${lon.toFixed(6)}`;-->
+        <!--                                // compute total if checkin exists-->
+        <!--                                const checkinStr = row.querySelector('.checkin-time').value;-->
+        <!--                                if (checkinStr) {-->
+        <!--                                    const inDate = new Date(checkinStr);-->
+        <!--                                    if (!isNaN(inDate)) {-->
+        <!--                                        const diffMs = now - inDate;-->
+        <!--                                        const h = Math.floor(diffMs / 3600000);-->
+        <!--                                        const m = Math.floor((diffMs % 3600000) / 60000);-->
+        <!--                                        totalField.value = `${h}h ${m}m`;-->
+        <!--                                        row.dataset.total_seconds = Math.floor(diffMs / 1000);-->
+        <!--                                    }-->
+        <!--                                }-->
+        <!--                                btn.disabled = false;-->
+        <!--                            }, function (err) {-->
+        <!--                                alert('Unable to get location: ' + (err.message || err.code));-->
+        <!--                                btn.disabled = false;-->
+        <!--                            }, {enableHighAccuracy: true, timeout: 10000});-->
+        <!--                        }-->
+        <!--                    });-->
+
+        <!--                    // &#45;&#45;&#45;&#45; POST &#45;&#45;&#45;&#45;-->
+        <!--                    document.body.addEventListener('click', function (ev) {-->
+        <!--                        if (!ev.target.classList) return;-->
+        <!--                        if (ev.target.classList.contains('o-btn-post')) {-->
+        <!--                            const btn = ev.target;-->
+        <!--                            const row = btn.closest('tr');-->
+        <!--                            const partnerId = row.dataset.partnerId || '';-->
+        <!--                            if (!partnerId) {-->
+        <!--                                alert('Missing partner id');-->
+        <!--                                return;-->
+        <!--                            }-->
+        <!--                            const payload = {-->
+        <!--                                post: true,-->
+        <!--                                partner_id: partnerId,-->
+        <!--                                partner_address: row.dataset.partnerAddress || '',-->
+        <!--                                route_plan_id: row.dataset.recId || '',-->
+        <!--                                latitude_in: row.dataset.lat_in || '',-->
+        <!--                                longitude_in: row.dataset.lon_in || '',-->
+        <!--                                latitude_out: row.dataset.lat_out || '',-->
+        <!--                                longitude_out: row.dataset.lon_out || '',-->
+        <!--                                check_in_time: row.dataset.checkin_time_iso || '',-->
+        <!--                                check_out_time: row.dataset.checkout_time_iso || '',-->
+        <!--                                check_in_loc: row.querySelector('.checkin-loc').value || '',-->
+        <!--                                check_out_loc: row.querySelector('.checkout-loc').value || ''-->
+        <!--                            };-->
+        <!--                            btn.disabled = true;-->
+        <!--                            btn.textContent = 'Saving...';-->
+        <!--                            const csrfToken = document.getElementById('csrf_token').value;-->
+        <!--                            fetch('/create/field/force/rec', {-->
+        <!--                                method: 'POST',-->
+        <!--                                headers: {-->
+        <!--                                    'Content-Type': 'application/json',-->
+        <!--                                    'X-CSRFToken': csrfToken,-->
+        <!--                                },-->
+        <!--                                credentials: 'same-origin',-->
+        <!--                                body: JSON.stringify(payload),-->
+        <!--                            })-->
+        <!--                                    .then(r => r.json())-->
+        <!--                                    .then(data => {-->
+        <!--                                        if (data &amp;&amp; data.success) {-->
+        <!--                                            if (data.check_in &amp;&amp; data.check_in.time) row.querySelector('.checkin-time').value = data.check_in.time;-->
+        <!--                                            if (data.check_out &amp;&amp; data.check_out.time) row.querySelector('.checkout-time').value = data.check_out.time;-->
+        <!--                                            if (data.check_in &amp;&amp; data.check_in.address) row.querySelector('.checkin-loc').value = data.check_in.address;-->
+        <!--                                            if (data.check_out &amp;&amp; data.check_out.address) row.querySelector('.checkout-loc').value = data.check_out.address;-->
+        <!--                                            if (data.total_hours !== null &amp;&amp; data.total_hours !== undefined) {-->
+        <!--                                                row.querySelector('.total-time').value = (data.total_hours ? data.total_hours + 'h' : '');-->
+        <!--                                            }-->
+        <!--                                            btn.textContent = 'Posted';-->
+        <!--                                            btn.disabled = true;-->
+        <!--                                            row.querySelectorAll('.o-btn-checkin, .o-btn-checkout').forEach(b => b.disabled = true);-->
+        <!--                                        } else {-->
+        <!--                                            alert('Server error saving record');-->
+        <!--                                            btn.textContent = 'Post';-->
+        <!--                                            btn.disabled = false;-->
+        <!--                                        }-->
+        <!--                                    })-->
+        <!--                                    .catch(err => {-->
+        <!--                                        console.error('Save error', err);-->
+        <!--                                        alert('Network/server error saving record');-->
+        <!--                                        btn.textContent = 'Post';-->
+        <!--                                        btn.disabled = false;-->
+        <!--                                    });-->
+        <!--                        }-->
+        <!--                    });-->
+
+        <!--                }); // DOMContentLoaded-->
+        <!--            </script>-->
+

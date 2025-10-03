@@ -1,32 +1,48 @@
-# -*- coding: utf-8 -*-
 from _datetime import datetime
 import json
 import requests
 from odoo import http, fields
 from odoo.http import request, Response
 import base64
+from datetime import timedelta
+
+from odoo.tools import DEFAULT_SERVER_DATETIME_FORMAT
 
 
 class PortalAttendanceController(http.Controller):
 
-    @http.route('/field/routes/', type='http', auth='user', website=True)
+    @http.route('/field/routes/', type='http', auth='user', website=True, methods=['GET'])
     def portal_attendance_page(self, **kwargs):
         user = request.env.user
         customers_list = []
         # fetch confirmed route.planing records for this salesperson (employee)
-        customer_recs = request.env['route.planing'].sudo().search([
-            ('state', '=', 'confirm'),
+        route_recs = request.env['route.planing'].sudo().search([
+            ('state', 'in', ['confirm', 'in_process', 'complete']),
             ('salesperson_id', '=', request.env.user.employee_id.id),
         ])
-        for rec in customer_recs:
-            # iterate lines (line_ids) and add one row per line
+
+        for rec in route_recs:
             for line in rec.line_ids:
+                # find if there is already a field.force record for this line+customer
+                ff_rec = request.env['field.force'].sudo().search([
+                    ('route_plan_id', '=', rec.id),
+                    ('partner_id', '=', line.partner_id.id),
+                ], limit=1)
+
                 customers_list.append({
-                    'id': rec.id,
+                    'route_id': rec.id,
                     'customer_id': line.partner_id.id,
                     'customer_name': line.partner_id.name,
                     'location': line.partner_location or '',
                     'notes': line.note_desc,
+                    'field_force_id': ff_rec.id if ff_rec else False,
+                    'check_in_time': ff_rec.check_in_time.strftime(
+                        "%Y-%m-%d %H:%M:%S") if ff_rec and ff_rec.check_in_time else '',
+                    'check_out_time': ff_rec.check_out_time.strftime(
+                        "%Y-%m-%d %H:%M:%S") if ff_rec and ff_rec.check_out_time else '',
+                    'total_time_spent': ff_rec.total_time_spent if ff_rec else '',
+                    'check_in_address': ff_rec.check_in_address if ff_rec else '',
+                    'check_out_address': ff_rec.check_out_address if ff_rec else '',
                 })
 
         partner_list_json = json.dumps(customers_list)
@@ -172,25 +188,19 @@ class PortalAttendanceController(http.Controller):
 
         rec = Model.sudo().create(vals)
 
-        if route_plan_id:
-            try:
-                route_rec = request.env['route.planing'].sudo().browse(route_plan_id)
-                if route_rec and route_rec.exists():
-                    # only write the field_force_id (and optionally change state if desired)
-                    route_rec.sudo().write({'field_force_id': rec.id})
-                    # optional: set state to in_process or whatever business logic requires:
-                    # route_rec.sudo().write({'field_force_id': rec.id, 'state': 'in_process'})
-            except Exception:
-                # don't let linking failure crash the whole request; you may want to log this
-                pass
-
-        total_hours = None
-        if rec.check_in_time and rec.check_out_time:
-            try:
-                delta = rec.check_out_time - rec.check_in_time
-                total_hours = round(delta.total_seconds() / 3600.0, 3)
-            except Exception:
-                total_hours = None
+        # --- update planing.lines booleans for this route+partner ---
+        try:
+            if route_plan_id and partner_id:
+                lines_id = request.env['planing.lines'].sudo().search(domain=[
+                    ('route_planing_id', '=', route_plan_id),
+                    ('partner_id', '=', partner_id),
+                ], limit=1)
+                if lines_id:
+                    # If the request contained check-in info, set is_check_in
+                    if (lat_in is not None and lon_in is not None) or vals.get('check_in_time'):
+                        lines_id.sudo().write({'is_check_in': True})
+        except Exception as e:
+            print(f'Unable To Update Route Plan: {e}')
 
         response = {
             'success': True,
@@ -209,55 +219,28 @@ class PortalAttendanceController(http.Controller):
                 'address': rec.check_out_address or '',
                 'time': rec.check_out_time.strftime("%Y-%m-%d %H:%M:%S") if rec.check_out_time else '',
             },
-            'total_hours': total_hours,
+            'total_hours': None,
         }
         return Response(json.dumps(response), content_type='application/json')
 
-    @http.route('/portal/attendance/checkin_state', type='http', auth='user', methods=['POST'], csrf=False)
-    def portal_attendance_checkin_state(self, **post):
-        """
-        Accepts JSON or form POST with { "record_id": <id> } and sets route.planing.state = 'in_process'
-        """
-        print(f'Hited Me , Called Me... {post}')
-        try:
-            raw = request.httprequest.get_data(as_text=True) or None
-            payload = json.loads(raw) if raw and raw.strip() else dict(post)
-        except Exception:
-            payload = dict(post)
-
-        rec_id = payload.get('record_id') or payload.get('rec_id') or payload.get('id')
-        if not rec_id:
-            return Response(json.dumps({'success': False, 'error': 'missing_record_id'}),
-                            content_type='application/json')
-
-        try:
-            rec_id = int(rec_id)
-        except Exception:
-            return Response(json.dumps({'success': False, 'error': 'invalid_record_id'}),
-                            content_type='application/json')
-
-        rec = request.env['route.planing'].sudo().browse(rec_id)
-        if not rec or not rec.exists():
-            return Response(json.dumps({'success': False, 'error': 'record_not_found'}),
-                            content_type='application/json')
-
-        try:
-            rec.sudo().write({'state': 'in_process'})
-        except Exception as e:
-            return Response(json.dumps({'success': False, 'error': 'write_failed', 'message': str(e)}),
-                            content_type='application/json')
-
-        return Response(json.dumps({'success': True, 'new_state': rec.state, 'id': rec.id}),
-                        content_type='application/json')
-
-    @http.route('/portal/attendance/checkout_state', type='http', auth='user', methods=['POST'], csrf=False)
+    @http.route('/update/field/force/rec', type='http', auth='user', methods=['POST'], csrf=False)
     def portal_attendance_checkout_state(self, **post):
         """
-        Accepts JSON or form POST with { "record_id": <id> } and sets route.planing.state = 'complete'
+        POST payload:
+            { "record_id": <route.planing id>,
+              "field_force_id": <optional field.force id>,
+              "partner_id": <optional partner id>,
+              "latitude_out": <float>,
+              "longitude_out": <float>,
+              "check_out_time": <ISO string or server will set now>,
+              "check_out_loc": <address string>
+            }
+
+        Sets route.state = 'complete' and updates the specified field.force record.
         """
         try:
-            raw = request.httprequest.get_data(as_text=True) or None
-            payload = json.loads(raw) if raw and raw.strip() else dict(post)
+            raw = request.httprequest.get_data(as_text=True)
+            payload = json.loads(raw) if raw else dict(post)
         except Exception:
             payload = dict(post)
 
@@ -267,24 +250,444 @@ class PortalAttendanceController(http.Controller):
                             content_type='application/json')
 
         try:
-            rec_id = int(rec_id)
+            route = request.env['route.planing'].sudo().browse(int(rec_id))
         except Exception:
             return Response(json.dumps({'success': False, 'error': 'invalid_record_id'}),
                             content_type='application/json')
 
-        rec = request.env['route.planing'].sudo().browse(rec_id)
-        if not rec or not rec.exists():
+        if not route or not route.exists():
             return Response(json.dumps({'success': False, 'error': 'record_not_found'}),
                             content_type='application/json')
 
-        try:
-            rec.sudo().write({'state': 'complete'})
-        except Exception as e:
-            return Response(json.dumps({'success': False, 'error': 'write_failed', 'message': str(e)}),
-                            content_type='application/json')
+        # update route state
+        route.sudo().write({'state': 'complete'})
 
-        return Response(json.dumps({'success': True, 'new_state': rec.state, 'id': rec.id}),
-                        content_type='application/json')
+        # locate the field.force record to update:
+        ff = None
+        ff_id = payload.get('field_force_id')
+        if ff_id:
+            try:
+                ff = request.env['field.force'].sudo().browse(int(ff_id))
+                if not ff.exists():
+                    ff = None
+            except Exception:
+                ff = None
+
+        # fallback: try to find latest field.force for this route + partner (if partner_id provided)
+        if not ff:
+            partner_id = payload.get('partner_id')
+            domain = [('route_plan_id', '=', route.id)]
+            if partner_id:
+                try:
+                    partner_id_int = int(partner_id)
+                    domain.append(('partner_id', '=', partner_id_int))
+                except Exception:
+                    pass
+            ff = request.env['field.force'].sudo().search(domain, order='id desc', limit=1)
+
+        check_out_time_str = payload.get('check_out_time') or ''
+
+        # helper to parse ISO or common formats (simple)
+        def _parse_client_datetime(s):
+            if not s:
+                return None
+            s = str(s).strip()
+            try:
+                if s.endswith('Z'):
+                    s2 = s[:-1]
+                    dt = datetime.fromisoformat(s2)
+                else:
+                    dt = datetime.fromisoformat(s)
+                return dt.strftime('%Y-%m-%d %H:%M:%S')
+            except Exception:
+                # try common fallback
+                for fmt in ('%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M', '%d/%m/%Y %H:%M:%S', '%m/%d/%Y, %I:%M:%S %p'):
+                    try:
+                        dt = datetime.strptime(s, fmt)
+                        return dt.strftime('%Y-%m-%d %H:%M:%S')
+                    except Exception:
+                        continue
+            return None
+
+        result = {'success': True, 'route_id': route.id, 'field_force_id': False, 'state': route.state}
+
+        if ff and ff.exists():
+            vals = {}
+            if payload.get('latitude_out') is not None:
+                try:
+                    vals['latitude_out'] = float(payload['latitude_out'])
+                except Exception:
+                    vals['latitude_out'] = 0.0
+            if payload.get('longitude_out') is not None:
+                try:
+                    vals['longitude_out'] = float(payload['longitude_out'])
+                except Exception:
+                    vals['longitude_out'] = 0.0
+            if payload.get('check_out_loc'):
+                vals['check_out_address'] = payload.get('check_out_loc')
+            parsed = _parse_client_datetime(check_out_time_str)
+            if parsed:
+                vals['check_out_time'] = parsed
+            else:
+                vals['check_out_time'] = fields.Datetime.now()
+            vals['action_check_out'] = 'checkout'
+            try:
+                ff.sudo().write(vals)
+                result['field_force_id'] = ff.id
+
+                # --- update planing.lines is_check_out flag ---
+                try:
+                    if route.id and ff.partner_id:
+                        line = request.env['planing.lines'].sudo().search([
+                            ('route_planing_id', '=', route.id),
+                            ('partner_id', '=', ff.partner_id.id),
+                        ], limit=1)
+                        if line:
+                            line.sudo().write({'is_check_out': True})
+                except Exception as e:
+                    # optional: log or print
+                    print(f"Unable to update planing.lines checkout flag: {e}")
+                # --- end update ---
+
+                # also return latest values for UI convenience
+                result['check_out'] = {
+                    'time': ff.check_out_time.strftime("%Y-%m-%d %H:%M:%S") if ff.check_out_time else '',
+                    'address': ff.check_out_address or '',
+                }
+                # compute hours if both present
+                try:
+                    if ff.check_in_time and ff.check_out_time:
+                        delta = ff.check_out_time - ff.check_in_time
+                        result['total_hours'] = round(delta.total_seconds() / 3600.0, 3)
+                    else:
+                        result['total_hours'] = None
+                except Exception:
+                    result['total_hours'] = None
+            except Exception as e:
+                return Response(json.dumps({'success': False, 'error': 'write_failed', 'message': str(e)}),
+                                content_type='application/json')
+
+        return Response(json.dumps(result), content_type='application/json')
+
+
+#
+# class PortalAttendanceController(http.Controller):
+#
+#     @http.route('/field/routes/', type='http', auth='user', website=True, methods=['GET'])
+#     def portal_attendance_page(self, **kwargs):
+#         user = request.env.user
+#         customers_list = []
+#         # fetch confirmed route.planing records for this salesperson (employee)
+#         route_recs = request.env['route.planing'].sudo().search([
+#             ('state', 'in', ['confirm', 'in_process', 'complete']),
+#             ('salesperson_id', '=', request.env.user.employee_id.id),
+#         ])
+#
+#         for rec in route_recs:
+#             for line in rec.line_ids:
+#                 # find if there is already a field.force record for this line+customer
+#                 ff_rec = request.env['field.force'].sudo().search([
+#                     ('route_plan_id', '=', rec.id),
+#                     ('partner_id', '=', line.partner_id.id),
+#                 ], limit=1)
+#
+#                 customers_list.append({
+#                     'route_id': rec.id,
+#                     'customer_id': line.partner_id.id,
+#                     'customer_name': line.partner_id.name,
+#                     'location': line.partner_location or '',
+#                     'notes': line.note_desc,
+#                     'field_force_id': ff_rec.id if ff_rec else False,
+#                     'check_in_time': ff_rec.check_in_time.strftime(
+#                         "%Y-%m-%d %H:%M:%S") if ff_rec and ff_rec.check_in_time else '',
+#                     'check_out_time': ff_rec.check_out_time.strftime(
+#                         "%Y-%m-%d %H:%M:%S") if ff_rec and ff_rec.check_out_time else '',
+#                     'total_time_spent': ff_rec.total_time_spent if ff_rec else '',
+#                     'check_in_address': ff_rec.check_in_address if ff_rec else '',
+#                     'check_out_address': ff_rec.check_out_address if ff_rec else '',
+#                 })
+#
+#         partner_list_json = json.dumps(customers_list)
+#
+#         return request.render('bss_field_force.portal_attendance_page', {
+#             'customers_list': customers_list,
+#             'partner_list_json': partner_list_json,
+#             'user': user,
+#         })
+#
+#     @http.route('/create/field/force/rec', type='http', auth='user', methods=['POST'], csrf=False)
+#     def create_field_force_record(self, **post):
+#         # Accept JSON body or form data
+#         try:
+#             raw = request.httprequest.get_data(as_text=True)
+#             payload = json.loads(raw) if raw else dict(post)
+#         except Exception:
+#             payload = dict(post)
+#
+#         # normalize names
+#         lat_in = payload.get('lat_in') or payload.get('latitude_in') or payload.get('latitudeIn') or None
+#         lon_in = payload.get('lon_in') or payload.get('longitude_in') or payload.get('longitudeIn') or None
+#         lat_out = payload.get('lat_out') or payload.get('latitude_out') or payload.get('latitudeOut') or None
+#         lon_out = payload.get('lon_out') or payload.get('longitude_out') or payload.get('longitudeOut') or None
+#
+#         check_in_loc = payload.get('check_in_loc') or payload.get('check_in_address') or ''
+#         check_out_loc = payload.get('check_out_loc') or payload.get('check_out_address') or ''
+#
+#         check_in_time_str = payload.get('check_in_time') or payload.get('checkInTime') or ''
+#         check_out_time_str = payload.get('check_out_time') or payload.get('checkOutTime') or ''
+#
+#         partner_id = payload.get('partner_id') or False
+#         partner_address = payload.get('partner_address') or ''
+#
+#         # require explicit post
+#         is_post = payload.get('post') in (True, '1', 'true', 'True') or bool(partner_id)
+#         if not is_post:
+#             return Response(json.dumps({'success': True, 'message': 'ignored, not a post'}),
+#                             content_type='application/json')
+#
+#         try:
+#             partner_id = int(partner_id) if partner_id else False
+#         except Exception:
+#             partner_id = False
+#
+#         def parse_client_datetime(s):
+#             if not s:
+#                 return None
+#             s = str(s).strip()
+#             try:
+#                 if s.endswith('Z'):
+#                     s2 = s[:-1]
+#                     dt = datetime.fromisoformat(s2)
+#                 else:
+#                     dt = datetime.fromisoformat(s)
+#                 return dt.strftime('%Y-%m-%d %H:%M:%S')
+#             except Exception:
+#                 pass
+#             for fmt in ('%Y-%m-%d %H:%M:%S', '%Y-%m-%d %H:%M', '%d/%m/%Y %H:%M:%S', '%m/%d/%Y, %I:%M:%S %p'):
+#                 try:
+#                     dt = datetime.strptime(s, fmt)
+#                     return dt.strftime('%Y-%m-%d %H:%M:%S')
+#                 except Exception:
+#                     continue
+#             return s
+#
+#         def reverse_geocode(lat, lon):
+#             try:
+#                 resp = requests.get(
+#                     "https://nominatim.openstreetmap.org/reverse",
+#                     params={'lat': float(lat), 'lon': float(lon), 'format': 'jsonv2'},
+#                     headers={'User-Agent': 'odoo-portal-checkin/1.0'},
+#                     timeout=5
+#                 )
+#                 if resp.ok:
+#                     return resp.json().get('display_name')
+#             except Exception:
+#                 pass
+#             return None
+#
+#         if not check_in_loc and lat_in and lon_in:
+#             check_in_loc = reverse_geocode(lat_in, lon_in) or ''
+#         if not check_out_loc and lat_out and lon_out:
+#             check_out_loc = reverse_geocode(lat_out, lon_out) or ''
+#
+#         # Build vals
+#         vals = {
+#             'user_id': request.env.user.id,
+#             'partner_id': partner_id or False,
+#             'partner_address': partner_address or False,
+#         }
+#
+#         if lat_in and lon_in:
+#             try:
+#                 vals['latitude_in'] = float(lat_in)
+#             except Exception:
+#                 vals['latitude_in'] = 0.0
+#             try:
+#                 vals['longitude_in'] = float(lon_in)
+#             except Exception:
+#                 vals['longitude_in'] = 0.0
+#             vals['check_in_address'] = check_in_loc or partner_address or 'Unknown'
+#             parsed_in = parse_client_datetime(check_in_time_str)
+#             if parsed_in:
+#                 vals['check_in_time'] = parsed_in
+#             else:
+#                 vals['check_in_time'] = fields.Datetime.now()
+#             vals['action_check_in'] = 'checkin'
+#
+#         if lat_out and lon_out:
+#             try:
+#                 vals['latitude_out'] = float(lat_out)
+#             except Exception:
+#                 vals['latitude_out'] = 0.0
+#             try:
+#                 vals['longitude_out'] = float(lon_out)
+#             except Exception:
+#                 vals['longitude_out'] = 0.0
+#             vals['check_out_address'] = check_out_loc or partner_address or 'Unknown'
+#             parsed_out = parse_client_datetime(check_out_time_str)
+#             if parsed_out:
+#                 vals['check_out_time'] = parsed_out
+#             else:
+#                 vals['check_out_time'] = fields.Datetime.now()
+#             vals['action_check_out'] = 'checkout'
+#
+#         # Create record: try field.force else portal.attendance
+#         Model = None
+#         if 'field.force' in request.env:
+#             Model = request.env['field.force']
+#         else:
+#             # fallback - create in ir.model.data? raise
+#             return Response(json.dumps({'success': False, 'error': 'no_model'}), content_type='application/json')
+#
+#         route_plan_id = payload.get('route_plan_id') or payload.get('rec_id') or None
+#         try:
+#             route_plan_id = int(route_plan_id) if route_plan_id else False
+#         except Exception:
+#             route_plan_id = False
+#
+#         if route_plan_id:
+#             vals['route_plan_id'] = route_plan_id
+#
+#         rec = Model.sudo().create(vals)
+#
+#         if route_plan_id:
+#             try:
+#                 route_rec = request.env['route.planing'].sudo().browse(route_plan_id)
+#                 if route_rec and route_rec.exists():
+#                     # only write the field_force_id (and optionally change state if desired)
+#                     route_rec.sudo().write({'field_force_id': rec.id})
+#                     # optional: set state to in_process or whatever business logic requires:
+#                     # route_rec.sudo().write({'field_force_id': rec.id, 'state': 'in_process'})
+#             except Exception:
+#                 # don't let linking failure crash the whole request; you may want to log this
+#                 pass
+#
+#         total_hours = None
+#         if rec.check_in_time and rec.check_out_time:
+#             try:
+#                 delta = rec.check_out_time - rec.check_in_time
+#                 total_hours = round(delta.total_seconds() / 3600.0, 3)
+#             except Exception:
+#                 total_hours = None
+#
+#         response = {
+#             'success': True,
+#             'id': rec.id,
+#             'partner_id': rec.partner_id.id if rec.partner_id else False,
+#             'partner_address': rec.partner_address or '',
+#             'check_in': {
+#                 'latitude_in': rec.latitude_in or 0.0,
+#                 'longitude_in': rec.longitude_in or 0.0,
+#                 'address': rec.check_in_address or '',
+#                 'time': rec.check_in_time.strftime("%Y-%m-%d %H:%M:%S") if rec.check_in_time else '',
+#             },
+#             'check_out': {
+#                 'latitude_out': rec.latitude_out or 0.0,
+#                 'longitude_out': rec.longitude_out or 0.0,
+#                 'address': rec.check_out_address or '',
+#                 'time': rec.check_out_time.strftime("%Y-%m-%d %H:%M:%S") if rec.check_out_time else '',
+#             },
+#             'total_hours': total_hours,
+#         }
+#         return Response(json.dumps(response), content_type='application/json')
+#
+#     @http.route('/portal/attendance/checkin_state', type='http', auth='user', methods=['POST'], csrf=False)
+#     def portal_attendance_checkin_state(self, **post):
+#         """
+#         Accepts JSON or form POST with { "record_id": <id> } and sets route.planing.state = 'in_process'
+#         """
+#         print(f'Hited Me , Called Me... {post}')
+#         try:
+#             raw = request.httprequest.get_data(as_text=True) or None
+#             payload = json.loads(raw) if raw and raw.strip() else dict(post)
+#         except Exception:
+#             payload = dict(post)
+#
+#         rec_id = payload.get('record_id') or payload.get('rec_id') or payload.get('id')
+#         if not rec_id:
+#             return Response(json.dumps({'success': False, 'error': 'missing_record_id'}),
+#                             content_type='application/json')
+#
+#         try:
+#             rec_id = int(rec_id)
+#         except Exception:
+#             return Response(json.dumps({'success': False, 'error': 'invalid_record_id'}),
+#                             content_type='application/json')
+#
+#         rec = request.env['route.planing'].sudo().browse(rec_id)
+#         if not rec or not rec.exists():
+#             return Response(json.dumps({'success': False, 'error': 'record_not_found'}),
+#                             content_type='application/json')
+#
+#         try:
+#             rec.sudo().write({'state': 'in_process'})
+#         except Exception as e:
+#             return Response(json.dumps({'success': False, 'error': 'write_failed', 'message': str(e)}),
+#                             content_type='application/json')
+#
+#         return Response(json.dumps({'success': True, 'new_state': rec.state, 'id': rec.id}),
+#                         content_type='application/json')
+#
+#     @http.route('/portal/attendance/checkout_state', type='http', auth='user', methods=['POST'], csrf=False)
+#     def portal_attendance_checkout_state(self, **post):
+#         """
+#         POST { "record_id": <route.planing id>, optional lat/lon/time/address }
+#         - set route.planing.state = 'complete'
+#         - update its field.force record with checkout data
+#         """
+#         payload = {}
+#         try:
+#             raw = request.httprequest.get_data(as_text=True)
+#             payload = json.loads(raw) if raw else dict(post)
+#         except Exception:
+#             payload = dict(post)
+#
+#         rec_id = payload.get('record_id') or payload.get('rec_id') or payload.get('id')
+#         if not rec_id:
+#             return Response(json.dumps({'success': False, 'error': 'missing_record_id'}),
+#                             content_type='application/json')
+#
+#         route = request.env['route.planing'].sudo().browse(int(rec_id))
+#         if not route.exists():
+#             return Response(json.dumps({'success': False, 'error': 'record_not_found'}),
+#                             content_type='application/json')
+#
+#         # update route state
+#         route.sudo().write({'state': 'complete'})
+#
+#         # update OUT fields on field.force if exists
+#         ff = route.field_force_id
+#         if ff:
+#             vals = {}
+#             if payload.get('latitude_out'):
+#                 vals['latitude_out'] = float(payload['latitude_out'])
+#             if payload.get('longitude_out'):
+#                 vals['longitude_out'] = float(payload['longitude_out'])
+#             if payload.get('check_out_loc'):
+#                 vals['check_out_address'] = payload['check_out_loc']
+#
+#             # ✅ FIX: safely parse ISO datetime coming from JS (toISOString)
+#             if payload.get('check_out_time'):
+#                 try:
+#                     iso_str = payload['check_out_time']
+#                     if iso_str.endswith('Z'):
+#                         iso_str = iso_str[:-1]
+#                     dt = datetime.fromisoformat(iso_str)
+#                     vals['check_out_time'] = dt.strftime(DEFAULT_SERVER_DATETIME_FORMAT)
+#                 except Exception:
+#                     vals['check_out_time'] = fields.Datetime.now()
+#             else:
+#                 vals['check_out_time'] = fields.Datetime.now()
+#
+#             vals['action_check_out'] = 'checkout'
+#             ff.sudo().write(vals)
+#
+#         return Response(json.dumps({
+#             'success': True,
+#             'route_id': route.id,
+#             'field_force_id': ff.id if ff else False,
+#             'state': route.state,
+#         }), content_type='application/json')
 
 
 class PortalRoutePlanPDF(http.Controller):

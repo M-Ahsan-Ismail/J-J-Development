@@ -15,10 +15,12 @@
             <field name="arch" type="xml">
                 <form string="Route Planning">
                     <header>
-                        <button name="action_confirm" string="Confirm" type="object" class="btn-primary"
-                                invisible="state == 'confirm'"/>
-                        <button name="action_draft" string="Set to Draft" type="object" class="btn-secondary"
-                                invisible="state == 'draft'"/>
+                        <button name="action_confirm" string="Confirm" type="object" class="btn-primary"/>
+                        <!--                        <button name="action_confirm" string="Confirm" type="object" class="btn-primary"-->
+                        <!--                                invisible="state in ['confirm','in_process','complete']"/>-->
+                        <button name="action_draft" string="Set to Draft" type="object" class="btn-secondary"/>
+                        <!--                        <button name="action_draft" string="Set to Draft" type="object" class="btn-secondary"-->
+                        <!--                                invisible="state in ['draft','in_process','complete']"/>-->
                         <field name="state" widget="statusbar" statusbar_visible="draft,confirm,in_process,complete"/>
                     </header>
 
@@ -42,7 +44,8 @@
                             <group>
                                 <field name="salesperson_id" widget="many2one" options="{'no_create': False}"
                                        placeholder="Select Salesperson"/>
-                                <field name="visit_time" widget="datetime" placeholder="Visit Time"/>
+                                <field name="date_from" widget="datetime" placeholder="Time From"/>
+                                <field name="date_to" widget="datetime" placeholder="Time To"/>
                             </group>
                         </group>
                         <notebook>
@@ -73,8 +76,10 @@
                     <field name="name" string="Reference" widget="char" class="o_force_ltr"/>
                     <field name="salesperson_id" string="Salesperson" widget="many2one_avatar_user"
                            options="{'no_create': True, 'no_open': True}"/>
-                    <field name="visit_time" string="Scheduled Time" widget="date" class="o_force_ltr"
-                           options="{'format': 'MM/DD/YYYY HH:mm:ss'}"/>
+                    <field name="date_from" widget="date" class="o_force_ltr"
+                           options="{'format': 'MM/DD/YYYY'}"/>
+                    <field name="date_to" widget="date" class="o_force_ltr"
+                           options="{'format': 'MM/DD/YYYY'}"/>
                     <field name="state" string="Status" widget="badge" options="{'clickable': True}"
                            decoration-info="state=='draft'" decoration-success="state=='complete'"
                            decoration-warning="state=='in_process'" decoration-primary="state=='confirm'"/>
@@ -91,7 +96,6 @@
                 <kanban default_group_by="state" class="o_kanban_small_column" quick_create="false">
                     <field name="name"/>
                     <field name="salesperson_id"/>
-                    <field name="visit_time"/>
                     <field name="state"/>
                     <field name="create_date"/>
                     <templates>
@@ -99,7 +103,9 @@
                             <div class="oe_kanban_global_click o_kanban_record_has_image_fill">
                                 <!-- Colored Top Bar based on State -->
                                 <div t-attf-class="ribbon ribbon-top-right #{record.state.raw_value == 'complete' ? 'ribbon-success' : record.state.raw_value == 'confirm' ? 'ribbon-primary' : record.state.raw_value == 'in_process' ? 'ribbon-warning' : 'ribbon-secondary'}">
-                                    <span><field name="state"/></span>
+                                    <span>
+                                        <field name="state"/>
+                                    </span>
                                 </div>
 
                                 <div class="o_kanban_image_fill_left d-none d-md-block"
@@ -130,19 +136,16 @@
                                                 <i class="fa fa-user-circle-o text-muted"/>
                                             </div>
                                             <div class="col-11">
-                                                <span class="text-muted small">Salesperson:</span><br/>
-                                                <strong><field name="salesperson_id" widget="many2one"/></strong>
+                                                <span class="text-muted small">Salesperson:</span>
+                                                <br/>
+                                                <strong>
+                                                    <field name="salesperson_id" widget="many2one"/>
+                                                </strong>
                                             </div>
                                         </div>
                                         <div class="row g-0 mb-2">
                                             <div class="col-1 text-center">
                                                 <i class="fa fa-calendar text-info"/>
-                                            </div>
-                                            <div class="col-11">
-                                                <span class="text-muted small">Scheduled:</span><br/>
-                                                <strong class="text-info">
-                                                    <field name="visit_time" widget="datetime"/>
-                                                </strong>
                                             </div>
                                         </div>
                                         <div class="row g-0">

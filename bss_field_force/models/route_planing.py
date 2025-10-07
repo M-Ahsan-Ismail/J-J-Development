@@ -16,7 +16,9 @@ class RoutePlaning(models.Model):
     )
 
     salesperson_id = fields.Many2one('hr.employee', string='Salesperson', domain=[('is_sales_man', '=', True)])
-    visit_time = fields.Datetime(string='Scheduled Time')
+    # visit_time = fields.Datetime(string='Scheduled Time')
+    date_from = fields.Date('Start Date')
+    date_to = fields.Date('End Date')
     state = fields.Selection([
         ('draft', 'New'),
         ('confirm', 'Confirmed'), ('in_process', 'In Process'), ('complete', 'Completed'), ],
@@ -63,6 +65,13 @@ class RoutePlaning(models.Model):
             'target': 'current',
         }
 
+    @api.onchange('line_ids')
+    def _onchange_is_check_in_state(self):
+        if any(x.is_check_in == True for x in self.line_ids):
+            self.state = 'in_process'
+        if all(l.is_check_in and l.is_check_out for l in self.line_ids):
+            self.state = 'complete'
+
 
 class PlaningLines(models.Model):
     _name = 'planing.lines'
@@ -72,8 +81,8 @@ class PlaningLines(models.Model):
     visit_count = fields.Integer('Visit Count', readonly=True, store=True)
     partner_id = fields.Many2one('res.partner', string='Customer', domain=[('is_customer', '=', True)])
     partner_location = fields.Char('Address/Location', readonly=True, store=True)
-    is_check_in = fields.Boolean('Check-In', readonly=True)
-    is_check_out = fields.Boolean('Check-Out', readonly=True)
+    is_check_in = fields.Boolean('Check-In', readonly=False)
+    is_check_out = fields.Boolean('Check-Out', readonly=False)
     note_desc = fields.Char('Note Description')
 
     @api.onchange('partner_id')

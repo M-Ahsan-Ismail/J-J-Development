@@ -1,4 +1,5 @@
 from odoo import models, fields, api, _
+from odoo.exceptions import UserError, ValidationError
 
 
 class FieldForce(models.Model):
@@ -49,6 +50,24 @@ class FieldForce(models.Model):
         sanitize=False
     )
 
+    @api.onchange('partner_id')
+    def _onchange_partner_id(self):
+        """
+        Update partner_location with the full address when partner_id changes in the UI.
+        """
+        if self.partner_id:
+            address_parts = [
+                self.partner_id.street or '',
+                self.partner_id.street2 or '',
+                self.partner_id.city or '',
+                self.partner_id.state_id.name if self.partner_id.state_id else '',
+                self.partner_id.zip or '',
+                self.partner_id.country_id.name if self.partner_id.country_id else ''
+            ]
+            self.partner_location = ' '.join(filter(None, address_parts))
+        else:
+            self.partner_location = False
+
     def _compute_map_links(self):
         for rec in self:
             if rec.latitude_in and rec.longitude_in:
@@ -82,9 +101,30 @@ class FieldForce(models.Model):
 
     @api.model
     def create(self, vals):
+        # --- Sequence logic ---
         if vals.get('name', _('New')) == _('New'):
             vals['name'] = self.env['ir.sequence'].next_by_code('field.force.sequence') or _('New')
-        return super(FieldForce, self).create(vals)
+
+        # --- Duplicate check-in validation ---
+        route_id = vals.get('route_plan_id')
+        partner_id = vals.get('partner_id')
+
+        if route_id and partner_id:
+            existing_line = self.env['planing.lines'].search([
+                ('route_planing_id', '=', route_id),
+                ('partner_id', '=', partner_id),
+                ('is_check_in', '=', True),
+                ('is_check_out', '=', False)
+            ], limit=1)
+
+            if existing_line:
+                raise ValidationError(_(
+                    "You have already checked in for this customer on this route. Please check out first."
+                ))
+
+        # --- Create record ---
+        rec = super(FieldForce, self).create(vals)
+        return rec
 
     @api.depends('route_plan_id')
     def _compute_relevant_route_plans(self):
@@ -96,7 +136,7 @@ class FieldForce(models.Model):
             'name': 'Related Route Plan',
             'res_model': 'route.planing',
             'view_mode': 'list,form',
-            'domain': [('field_force_id', '=', self.id)],
+            'domain': [('field_force_ids', 'in', self.id)],
             'context': {'create': False, 'delete': False},
             'type': 'ir.actions.act_window',
             'target': 'current',

@@ -18,10 +18,10 @@
                                 <span><strong>Salesperson:</strong> <t t-esc="doc.salesperson_id.name"/></span>
                             </div>
                             <div class="col-4"></div>
-                            <div class="col-4">
-                                <span><strong>Scheduled Date:</strong> <t
-                                        t-esc="doc.visit_time and doc.visit_time.strftime('%Y-%m-%d %H:%M') or '-'"/></span>
-                            </div>
+<!--                            <div class="col-4">-->
+<!--                                <span><strong>Scheduled Date:</strong> <t-->
+<!--                                        t-esc="doc.visit_time and doc.visit_time.strftime('%Y-%m-%d %H:%M') or '-'"/></span>-->
+<!--                            </div>-->
                         </div>
                         <br/>
                         <t t-if="doc.line_ids">

@@ -41,32 +41,32 @@
                             <field name="user_id" readonly="1"/>
                         </group>
                         <group>
-                            <field name="partner_address"/>
-                            <field name="total_time_spent"/>
+                            <field name="partner_address" readonly="1"/>
+                            <field name="total_time_spent" readonly="1"/>
                         </group>
                     </group>
 
                     <group string="Check In Items">
                         <group>
-                            <field name="action_check_in"/>
-                            <field name="check_in_time"/>
+                            <field name="action_check_in" readonly="1"/>
+                            <field name="check_in_time" readonly="1"/>
                         </group>
                         <group>
-                            <field name="latitude_in"/>
-                            <field name="longitude_in"/>
-                            <field name="check_in_address"/>
+                            <field name="latitude_in" readonly="1"/>
+                            <field name="longitude_in" readonly="1"/>
+                            <field name="check_in_address" readonly="1"/>
                         </group>
                     </group>
 
                     <group string="Check Out Items">
                         <group>
-                            <field name="action_check_out"/>
-                            <field name="check_out_time"/>
+                            <field name="action_check_out" readonly="1"/>
+                            <field name="check_out_time" readonly="1"/>
                         </group>
                         <group>
-                            <field name="latitude_out"/>
-                            <field name="longitude_out"/>
-                            <field name="check_out_address"/>
+                            <field name="latitude_out" readonly="1"/>
+                            <field name="longitude_out" readonly="1"/>
+                            <field name="check_out_address" readonly="1"/>
                         </group>
                     </group>
 
